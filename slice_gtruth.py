@@ -80,6 +80,15 @@ def make_gtruth_slices( boxfilename ) :
 
                 draw.rectangle( (upper_left,lower_right), outline="red" )
 
+                # adjust the intersections so the new ground truth of the box
+                # intersections starts at row=0 (making new images out of
+                # strips so need ground truth for each image strip)
+                for rect in isect.rect : 
+                    # subtract out the starting Y position of upper left
+                    rect.y -= s.rect[0].y
+                print "adjusted isect=",isect
+
+                # save this intersection; we'll write to a new XML file 
                 box_intersect_list.append( isect )
 
         # save the intersections as XML
