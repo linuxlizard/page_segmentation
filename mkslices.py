@@ -8,30 +8,31 @@ import os
 import numpy as np
 import Image
 
-def get_basename( filename ) : 
-    return os.path.splitext( os.path.split( filename )[1] )[0]
+from basename import get_basename
 
-def make_slices( data, num_rows ) :
+def make_slices( data, num_rows_in_slice ) :
     # carve up the numpy array into N strips of num_rows each; return an array
     # of said strips
 
     start_idx = 0
-    end_idx = start_idx + num_rows
+    end_idx = start_idx + num_rows_in_slice
 
+    print "make_slices shape=",data.shape
     slice_list = []
-    while start_idx < data.shape[1] : 
+    total_num_rows = data.shape[0] 
+    while start_idx < total_num_rows : 
         s = data[start_idx:end_idx,:]
-        print "s=",s.shape
+        print "start={0} end={1} s={2}".format( start_idx, end_idx, s.shape )
         slice_list.append( s ) 
         s = None
 
-        start_idx += num_rows
-        end_idx = min( data.shape[1], end_idx+num_rows )
+        start_idx += num_rows_in_slice
+        end_idx = min( total_num_rows, end_idx+num_rows_in_slice )
 
     return slice_list
 
 
-def make_image_slices( imgfilename ) :
+def make_image_slices( imgfilename, num_rows=600 ) :
     img = Image.open(imgfilename)
     img.load()
     
@@ -51,7 +52,7 @@ def make_image_slices( imgfilename ) :
     data = np.asarray(img,dtype="uint8")
     print "shape=",data.shape
 
-    imgslices = make_slices( data, 600 )
+    imgslices = make_slices( data, num_rows )
 
     outfilename_list = []
     outfilename_fmt = "{0}_s{1}.png"
