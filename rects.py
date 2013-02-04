@@ -56,6 +56,17 @@ class Strip( object ) :
             self.width = self.rect[1].x - self.rect[0].x
             self.height = self.rect[2].y - self.rect[1].y
 
+#        else : 
+#            # TODO make this smarter (defaults?)
+#            raise Exception( "need width/height or box parameters" )
+
+        # add enough duck so zone2xml can quack me 
+        # http://en.wikipedia.org/wiki/Duck_typing
+        # upper left 
+        self._corner_one = { "row": self.rect[0].y, "col": self.rect[0].x } 
+        # lower right
+        self._corner_two = { "row": self.rect[2].y, "col": self.rect[2].x } 
+
     def next_strip( self ) : 
         # increment to the next strip
         self.rect[0].y += self.height
@@ -65,6 +76,18 @@ class Strip( object ) :
 
     def __repr__( self ) : 
         return str(self.rect)
+
+    def __getattr__( self, name ) : 
+        print "getattr=", name
+        if name=="corner_one" : 
+            self._corner_one = { "row": self.rect[0].y, "col": self.rect[0].x } 
+            return self._corner_one
+        elif name=="corner_two" : 
+            self._corner_two = { "row": self.rect[2].y, "col": self.rect[2].x } 
+            return self._corner_two
+        else :
+            raise AttributeError
+
 
 def strip_intersect( gtruth, strip ) : 
     intersect = Strip()
