@@ -78,7 +78,6 @@ class Strip( object ) :
         return str(self.rect)
 
     def __getattr__( self, name ) : 
-        print "getattr=", name
         if name=="corner_one" : 
             self._corner_one = { "row": self.rect[0].y, "col": self.rect[0].x } 
             return self._corner_one
@@ -122,20 +121,62 @@ def strip_intersect( gtruth, strip ) :
 
     return intersect
 
-def slice_boxes( boxfilename) : 
-    box_list = zonebox.load_boxes(boxfilename)
+def box_list_bounding_box( box_list ) :
+    # find a bounding box that encompasses all boxes in the box_list
+    
+    min_row = sys.maxint
+    min_col = sys.maxint
+    max_row = 0
+    max_col = 0
+
     for box in box_list :
-        print box
-        s = Strip(box=box)
-        print s
+        if box.corner_one["row"] < min_row :
+            min_row = box.corner_one["row"]
+        if box.corner_one["col"] < min_col :
+            min_col = box.corner_one["col"]
 
-    s = Strip(width=2560,height=300)
-    print "strip=",s
-    s.next_strip()
-    print "next=",s
+        if box.corner_two["row"] > max_row :
+            max_row = box.corner_two["row"]
+        if box.corner_two["col"] > max_col :
+            max_col = box.corner_two["col"]
 
-    isect = strip_intersect( Strip(box=box_list[0]), s )
-    print "intersect=",isect
+    return {"upper_left": {"row":min_row,"col":min_col},
+            "lower_right":{"row":max_row,"col":max_col} }
+
+def slice_boxes( boxfilename) : 
+    # iterate through a box list, making strip slices.
+    
+    box_list = zonebox.load_boxes(boxfilename)
+#    for box in box_list :
+#        print box
+#        s = Strip(box=box)
+#        print s
+
+    # find the largest Y index in our boxes (the maximum row)
+    bounding_box = box_list_bounding_box( box_list )
+    print "bounding_box=",bounding_box
+
+    # use lower left row count as the number of rows we will iterate
+    num_rows = bounding_box["lower_right"]["row"]
+    print "num_rows=",num_rows
+
+    # make a starting strip
+    num_rows_in_strip = 300
+    s = Strip(width=2560,height=num_rows_in_strip)
+
+    row = 0
+    while row < num_rows : 
+        print "strip=",s
+        for box in box_list : 
+            print "box=",box
+            isect = strip_intersect( Strip(box=box), s )
+            if isect : 
+                print "intersect=",isect
+            else :
+                print "no intersections"
+
+        s.next_strip()
+        row += num_rows_in_strip
 
 def main() : 
     boxfilename = sys.argv[1]
