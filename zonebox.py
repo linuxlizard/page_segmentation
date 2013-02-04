@@ -44,8 +44,12 @@ class ZoneBox( object ) :
         self.zone_id = tokens[2]
 
     def parse_corner( self, tokens ) :
-        return { "row": int(tokens[2]),
-                 "col": int(tokens[3])}
+        # the box file uses x,y order
+        # we want explicitly row,col
+        return { "row": int(tokens[3]),
+                 "col": int(tokens[2])}
+#        return { "row": int(tokens[2]),
+#                 "col": int(tokens[3])}
 
     def parse_corner_one( self, s ) : 
         tokens = tokenize(s)
