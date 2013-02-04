@@ -8,7 +8,7 @@ import sys
 
 import zonebox
 
-def print_vertices( zonebox ) : 
+def print_vertices( outfile, zonebox ) : 
     # UWIII ZoneBox contains upper-left and lower-right corners.
     # Need to convert to four points.
     # [0] is x
@@ -32,42 +32,45 @@ def print_vertices( zonebox ) :
 #    p3 = (p0[0],p2[1])
 
     for p in (p0,p1,p2,p3) : 
-        print "<Vertex x=\"{0}\" y=\"{1}\">".format( p["col"],p["row"])
-        print "</Vertex>"
+        print >>outfile, "<Vertex x=\"{0}\" y=\"{1}\">".format( p["col"],p["row"])
+        print >>outfile, "</Vertex>"
 
-def print_zone_corners( zonebox ) : 
-    print "<ZoneCorners>"
-    print_vertices( zonebox ) 
-    print "</ZoneCorners>"
+def print_zone_corners( outfile, zonebox ) : 
+    print >>outfile, "<ZoneCorners>"
+    print_vertices( outfile, zonebox ) 
+    print >>outfile, "</ZoneCorners>"
 
-def print_zone_classification( zonebox ) : 
-    print "<Classification>"
+def print_zone_classification( outfile, zonebox ) : 
+    print >>outfile, "<Classification>"
     # nothing in the zonebox indicates text/graphics so mark everything as text
     # for now
-    print "<Category Value=\"Text\">"
-    print "</Category>"
-    print "</Classification>"
+    print >>outfile, "<Category Value=\"Text\">"
+    print >>outfile, "</Category>"
+    print >>outfile, "</Classification>"
 
-def print_zone( zonebox ) : 
-    print "<Zone>"
-    print_zone_corners( zonebox ) 
-    print_zone_classification( zonebox )
-    print "</Zone>"
+def print_zone( outfile, zonebox ) : 
+    print >>outfile, "<Zone>"
+    print_zone_corners( outfile, zonebox ) 
+    print_zone_classification( outfile, zonebox )
+    print >>outfile, "</Zone>"
 
-def convert_zonebox_to_xml( boxfilename) : 
+def write_boxlist_to_xml( outfile, box_list ) : 
+    print >>outfile, "<Page>"
+    for box in box_list : 
+        print_zone( outfile, box ) 
+    print >>outfile, "</Page>"
+    
+
+def convert_zonebox_to_xml( outfile, boxfilename) : 
 
     box_list = zonebox.load_boxes(boxfilename)
 
-    print "<Page>"
-    for box in box_list : 
-        print_zone( box ) 
-    print "</Page>"
-    
+    write_boxlist_to_xml( outfile, box_list )
 
 def main() : 
     boxfilename = sys.argv[1]
 
-    convert_zonebox_to_xml( boxfilename ) 
+    convert_zonebox_to_xml( sys.stdout, boxfilename ) 
     
     
 if __name__=='__main__' : 
