@@ -29,7 +29,7 @@ def draw_boxes( boxfilename, outdir=None) :
 
     box_list = zonebox.load_boxes(boxfilename)
 
-#    print box_list
+    print box_list
 
     # get the document id from the box file
 #    imgfilename = "IMAGEBIN/{0}BIN.TIF".format( box_list[0].document_id )
@@ -52,7 +52,10 @@ def draw_boxes( boxfilename, outdir=None) :
 #        print box.corner_one
 #        print box.corner_two
 
-        draw.rectangle( (box.corner_one,box.corner_two), outline="red" )
+        upper_left = (box.corner_one["col"],box.corner_one["row"])
+        lower_right = (box.corner_two["col"],box.corner_two["row"])
+
+        draw.rectangle( (upper_left,lower_right), outline="red" )
 
     img.save(outfilename)
     print "wrote",outfilename
