@@ -41,6 +41,12 @@ def make_gtruth_slices( boxfilename ) :
 
     box_strip_list = [ Strip(box=box) for box in box_list ]
 
+    for box_strip in box_strip_list : 
+        upper_left = box_strip.rect[0].x, box_strip.rect[0].y
+        lower_right = box_strip.rect[2].x, box_strip.rect[2].y
+
+        draw.rectangle( (upper_left,lower_right), outline="blue")
+
     # iterate the strip down the page, calculating all the box intersections
     # for each strip
     row = 0
@@ -54,15 +60,13 @@ def make_gtruth_slices( boxfilename ) :
         for box_strip in box_strip_list : 
             isect = rects.strip_intersect( box_strip, s )
             if isect : 
-                print isect
+                print 'isect=',isect
 
                 # PIL's Draw is x,y order
                 upper_left = isect.rect[0].x, isect.rect[0].y
                 lower_right = isect.rect[2].x, isect.rect[2].y
 
                 draw.rectangle( (upper_left,lower_right), outline="red" )
-
-                break
 
         s.next_strip()
         row += strip_rows
