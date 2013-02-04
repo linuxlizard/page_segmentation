@@ -10,9 +10,7 @@ import ImageDraw
 #import numpy as np
 
 import zonebox
-
-def get_basename( filename ) : 
-    return os.path.splitext( os.path.split( filename )[1] )[0]
+from basename import get_basename
 
 def load_image( imgfilename ) : 
     # load the image
