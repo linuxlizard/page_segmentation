@@ -31,8 +31,7 @@ def make_slices( data, num_rows_in_slice ) :
 
     return slice_list
 
-
-def make_image_slices( imgfilename, num_rows=600 ) :
+def load_image( imgfilename ) : 
     img = Image.open(imgfilename)
     img.load()
     
@@ -51,6 +50,10 @@ def make_image_slices( imgfilename, num_rows=600 ) :
 
     data = np.asarray(img,dtype="uint8")
     print "shape=",data.shape
+
+    return data
+
+def make_image_slices( imgfilename, num_rows=600 ) :
 
     imgslices = make_slices( data, num_rows )
 
