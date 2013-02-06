@@ -9,8 +9,9 @@ import subprocess
 import glob
 
 from basename import get_basename
+import drawxml
 
-gtruth_xml_basename = "A00BZONE"
+result_dir = "300_rast"
 
 def parse_runZoneComp_result( strings ) :
 #    print strings
@@ -40,39 +41,48 @@ def run( imgfilename ) :
     
     stripnum = get_stripnum_from_filename( basename )
 
-    out_imgfilename = "{0}_rast.png".format( basename )
-    xml_filename = "{0}_rast.xml".format( basename ) 
+    out_imgfilename = result_dir + "/" + "{0}_rast.png".format( basename )
+    xml_filename = result_dir + "/" + "{0}_rast.xml".format( basename ) 
 
-    gtruth_xml_filename = "{0}_s{1}.xml".format( gtruth_xml_basename, stripnum )
+    # zone box files use "ZONE" instead of "BIN"
+    # e.g., 
+    # A00ABIN_300_010_2990.png -> A00AZONE_300_010_2990.xml 
+    gtruth_xml_filename = "300/{0}.xml".format( basename.replace("BIN","ZONE") )
 
     print imgfilename, out_imgfilename, xml_filename, gtruth_xml_filename
 #    sys.exit(0)
 
     # segment the image
-    cmd = "./rast-ocropus {0} {1}".format( 
-                imgfilename, out_imgfilename ) 
+    cmd = "./rast-ocropus {0} {1}".format( imgfilename, out_imgfilename ) 
+    print cmd
+
+    result = subprocess.check_output( cmd, shell=True )
 
     # remove some clutter
     os.unlink(out_imgfilename)
 
-    print cmd
-    result = subprocess.check_output( cmd, shell=True )
-
-#    print result
-
+    # write the XML results 
     with open(xml_filename,"w") as outfile :
         print >>outfile, result
     print "wrote", xml_filename
 
     # run the compare
-    cmd = "runZoneComp -g {0} -d {1}".format( 
-            gtruth_xml_filename, xml_filename )
-
+    cmd = "runZoneComp -g {0} -d {1}".format( gtruth_xml_filename, xml_filename )
     print cmd
+    
     result = subprocess.check_output( cmd, shell=True )
 
+    # get the segmentation metric from the output
     metric = parse_runZoneComp_result( result ) 
-    print "{0},{1}".format( imgfilename, metric )
+    print "metric={0}".format( metric )
+
+    # draw the experimental result onto the input image
+    out_imgfilename = result_dir + "/" + "{0}_rast_zone.png".format( basename )
+    fname = drawxml.draw_zones( xml_filename, imgfilename, out_imgfilename )
+    print "wrote", fname
+
+    # remove some clutter
+#    os.unlink(xml_filename)
 
     return (imgfilename,metric)
 
@@ -80,6 +90,18 @@ def main() :
 
 #    for imgfilename in sys.argv[1:] : 
 #        run( imgfilename ) 
+
+    data = []
+
+    outfile = open("data.dat","w")
+
+    for f in sys.argv[1:] :
+        filename,metric = run(f)
+        print >>outfile, "{0}".format( metric )
+        outfile.flush()
+
+    outfile.close()
+    return
 
     data = [ run(f) for f in sys.argv[1:] ]
     print data
