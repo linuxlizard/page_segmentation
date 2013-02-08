@@ -10,6 +10,7 @@
 import sys
 import numpy as np
 import Image
+import os
 
 import mkslices
 from basename import get_basename
@@ -76,7 +77,7 @@ def make_all_gtruth_xml( box_strip_list, data, basename) :
             if not isect : 
                 continue
 
-            print 'isect=',isect
+#            print 'isect=',isect
 
             # adjust the intersections so the new ground truth of the box
             # intersections starts at row=0 (making new images out of
@@ -84,7 +85,7 @@ def make_all_gtruth_xml( box_strip_list, data, basename) :
             for rect in isect.rect : 
                 # subtract out the starting Y position of upper left
                 rect.y -= s.rect[0].y
-            print "adjusted isect=",isect
+#            print "adjusted isect=",isect
 
             # save this intersection; we'll write to a new XML file 
             box_intersect_list.append( isect )
@@ -92,7 +93,7 @@ def make_all_gtruth_xml( box_strip_list, data, basename) :
         # save the intersections as XML
         xmlfilename = output_dir + "/" + outfilename_fmt.format( 
                 basename, num_rows_in_strip, num_rows_to_slide, row )
-        print xmlfilename
+#        print xmlfilename
 
         with open(xmlfilename,"w") as outfile :
             zone2xml.write_boxlist_to_xml( outfile, box_intersect_list )
@@ -107,9 +108,26 @@ def make_all_gtruth_xml( box_strip_list, data, basename) :
 
         row += num_rows_to_slide
 
+def make_output_dir( basename ) : 
+    # output dir path is "stripsize/basename/"
+    # e.g., "300/A00BZONE"
+    
+    global output_dir
+    
+    output_dir = "{0}/{1}/".format( num_rows_in_strip, basename )
+
+    if os.path.exists( output_dir ) :
+        return
+
+    os.mkdir( output_dir )
+
 def make_sliding_strips( boxfilename ) :
     basename = get_basename( boxfilename )
 
+    # create the output directory for all the files I'm about to create
+    make_output_dir(basename)
+#    return
+    
     box_list = zonebox.load_boxes( boxfilename ) 
 
     # load the image associated with this box list
@@ -119,7 +137,7 @@ def make_sliding_strips( boxfilename ) :
     # get the image as a numpy array
     data = mkslices.load_image( imgfilename )
 
-#    strip_list = make_all_strips_images( data, basename )
+    strip_list = make_all_strips_images( data, basename )
 
     # 
     # Now make the ground truth files for each strip
@@ -128,17 +146,12 @@ def make_sliding_strips( boxfilename ) :
     # convert the box list into a list of strips
     box_strip_list = [ rects.Strip(box=box) for box in box_list ]
 
-    # load the image so we can get its size
-#    img = drawboxes.load_image(imgfilename)
-#    num_cols,num_rows = img.size
-#    print "rows={0} cols={1}".format( num_rows, num_cols )
-
+    # slice up the ground truth into individual XML files 
     make_all_gtruth_xml( box_strip_list, data, basename ) 
 
-
 def main() : 
-    boxfilename = sys.argv[1]
-    make_sliding_strips( boxfilename )
+    for boxfilename in sys.argv[1:] :
+        make_sliding_strips( boxfilename )
 
 if __name__=='__main__': 
     main()
