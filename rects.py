@@ -20,6 +20,9 @@ class Point(object):
 
 class Strip( object ) :
     def __init__( self, **kwargs ) : 
+        # self.value will be "Text", "Non-text", ... (more later)
+        self.value = None
+
         self.rect = [ Point(), Point(), Point(), Point() ]
 
         if "width" in kwargs and "height" in kwargs :
@@ -66,6 +69,12 @@ class Strip( object ) :
         self._corner_one = { "row": self.rect[0].y, "col": self.rect[0].x } 
         # lower right
         self._corner_two = { "row": self.rect[2].y, "col": self.rect[2].x } 
+
+    def set_value( self, value ) : 
+        # set the strip contents type
+        if value not in ("Text","Non-text") : 
+            raise Exception( "Unknown strip content type {0}".format( value ) )
+        self.value = value
 
     def next_strip( self ) : 
         # increment to the next strip
