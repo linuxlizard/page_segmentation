@@ -36,4 +36,6 @@ nosetests.xml
 
 *.xml
 *.png
-
+*.swp
+*.dat
+*.gz
