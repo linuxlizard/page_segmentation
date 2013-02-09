@@ -8,14 +8,9 @@ import sys
 import os
 import Image
 import ImageDraw
-import xml.etree.ElementTree as ET
 
+import gtruthxml
 from basename import get_basename
-
-def load_xml( xmlfilename ) :
-    tree = ET.parse(xmlfilename)
-    root = tree.getroot()
-    return root
 
 def load_image( imgfilename ) : 
     img = Image.open(imgfilename)
@@ -33,25 +28,19 @@ def draw_zones( xmlfilename, imgfilename, outfilename=None ) :
 
     draw = ImageDraw.Draw(img)
 
-    root = load_xml( xmlfilename ) 
+    zone_list = gtruthxml.parse_xml( xmlfilename ) 
 
-    for child in root : 
-        for zone in child : 
-            if zone.tag=="Classification" : 
+    for zone in zone_list : 
+        if zone.value=="Non-text" :
+            color = "red"
+        else :
+            color = "green"
 
-                if zone[0].attrib["Value"]=="Non-text" :
-                    color = "red"
-                else :
-                    color = "green"
-                draw.rectangle( ((x1,y1),(x2,y2)), outline=color)
-
-            elif zone.tag=="ZoneCorners" : 
-                x1,y1=zone[0].attrib["x"], zone[0].attrib["y"]
-                x1 = float(x1)
-                y1 = float(y1)
-                x2,y2=zone[-2].attrib["x"], zone[-2].attrib["y"]
-                x2 = float(x2)
-                y2 = float(y2)
+        x1 = zone.rect[0].x
+        y1 = zone.rect[0].y
+        x2 = zone.rect[2].x
+        y2 = zone.rect[2].y
+        draw.rectangle( ((x1,y1),(x2,y2)), outline=color)
 
     if outfilename is None : 
         outfilename = get_basename( imgfilename )+"_zones.png"
