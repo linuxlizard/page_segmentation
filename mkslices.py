@@ -53,7 +53,7 @@ def load_image( imgfilename ) :
 
     return data
 
-def make_image_slices( imgfilename, num_rows=600 ) :
+def make_image_slices( imgfilename, num_rows=300 ) :
 
     imgslices = make_slices( data, num_rows )
 
@@ -71,8 +71,8 @@ def make_image_slices( imgfilename, num_rows=600 ) :
     return outfilename_list
 
 def main() : 
-    imgfilename = sys.argv[1]
-    make_image_slices( imgfilename )
+    for imgfilename in sys.argv[1:] :
+        make_image_slices( imgfilename )
 
 if __name__=='__main__': 
     main()
