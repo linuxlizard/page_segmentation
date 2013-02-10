@@ -27,7 +27,7 @@ class Zone( object ):
         self.corner_two["row"] = lower_right[1]
         self.corner_two["col"] = lower_right[0]
 
-def parse_xml( xmlfilename, outfilename=None ) : 
+def parse_xml( xmlfilename ) : 
 
     root = load_xml( xmlfilename ) 
 
