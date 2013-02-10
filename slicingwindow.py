@@ -14,20 +14,20 @@ import os
 
 import mkslices
 from basename import get_basename
-import drawboxes
 import rects
 import zonebox
 import zone2xml
+import gtruthxml
 
 num_rows_in_strip = 300
 num_rows_to_slide  = 10
-output_dir = str(num_rows_in_strip)
+#output_dir = str(num_rows_in_strip)
 
 def write_image( data, outfilename ) : 
     img = Image.fromarray( data, mode="L" )
     img.save( outfilename ) 
 
-def make_all_strips_images( data, basename ) :
+def make_all_strips_images( data, basename, output_dir ) :
     # carve up the numpy array into N strips of num_rows each; return an array
     # of said strips
 
@@ -57,7 +57,7 @@ def make_all_strips_images( data, basename ) :
 
     return strip_list
 
-def make_all_gtruth_xml( box_strip_list, data, basename) : 
+def make_all_gtruth_xml( box_strip_list, data, output_dir, basename) : 
 
     total_num_rows,num_cols = data.shape
 
@@ -112,16 +112,18 @@ def make_output_dir( basename ) :
     # output dir path is "stripsize/basename/"
     # e.g., "300/A00BZONE"
     
-    global output_dir
+#    global output_dir
     
     output_dir = "{0}/{1}/".format( num_rows_in_strip, basename )
 
     if os.path.exists( output_dir ) :
-        return
+        return output_dir
 
     os.mkdir( output_dir )
 
-def make_sliding_strips( boxfilename ) :
+    return output_dir
+
+def make_sliding_strips_from_box( boxfilename ) :
     basename = get_basename( boxfilename )
 
     # create the output directory for all the files I'm about to create
@@ -149,10 +151,49 @@ def make_sliding_strips( boxfilename ) :
     # slice up the ground truth into individual XML files 
     make_all_gtruth_xml( box_strip_list, data, basename ) 
 
+def make_sliding_strips_from_image( imgfilename, output_dir ) : 
+    basename = get_basename( imgfilename ) 
+
+    # get the image as a numpy array
+    data = mkslices.load_image( imgfilename )
+    strip_list = make_all_strips_images( data, basename, output_dir )
+
+def awinder( ) : 
+    # slice up Amy Winder's images 
+    output_dir_base = "300_winder/"
+
+    for imgfilename in sys.argv[1:] :
+        basename = get_basename(imgfilename)
+
+        input_path = os.path.dirname(imgfilename)
+        # get rid of the trailing "/png" component (it's annoying)
+        input_path = input_path.replace( "/png", "/" )
+
+        output_dir = output_dir_base + input_path + basename
+
+        if not os.path.exists(output_dir) : 
+            os.makedirs(output_dir)
+
+        make_sliding_strips_from_image( imgfilename, output_dir )
+
+        xmlfilename = imgfilename.replace(".png",".xml")
+        xmlfilename = xmlfilename.replace("png","gTruth")
+        print xmlfilename
+
+        zone_list = gtruthxml.parse_xml( xmlfilename )
+        print zone_list
+
+        # get the image as a numpy array
+        data = mkslices.load_image( imgfilename )
+
+        # slice up the ground truth into individual XML files 
+        make_all_gtruth_xml( zone_list, data, output_dir, basename ) 
+
 def main() : 
     for boxfilename in sys.argv[1:] :
-        make_sliding_strips( boxfilename )
+        make_sliding_strips_from_box( boxfilename )
 
 if __name__=='__main__': 
-    main()
+#    main()
+    awinder()
 
