@@ -1,19 +1,33 @@
 # Run segmentation on missing images
 # davep 8-Feb-2013
 
-INPUT=$(notdir $(shell ls -d 300/[W]???ZONE))
-#INPUT=$(notdir $(shell ls -d 300/????ZONE))
-
-#OUTPUT=$(foreach fname,$(INPUT),300_rast/$(fname)/$(fname).dat)
-OUTPUT=$(foreach fname,$(INPUT),300_vor/$(fname)/$(fname).dat)
+#SIZE=300
+SIZE=600
 
 #ALGO=rast
-ALGO=voronoi
+ALGO=vor
+
+INPUT=$(notdir $(shell ls -d $(SIZE)/[A-V]???ZONE))
+#INPUT=$(notdir $(shell ls -d $(SIZE)/[W]???ZONE))
+
+# output should look e.g., 600_rast/A001ZONE/A001ZONE.dat
+OUTPUT=$(foreach fname,$(INPUT),$(SIZE)_$(ALGO)/$(fname)/$(fname).dat)
+
+# @echo is for debugging; remove when running
+DEBUG=@echo
+#DEBUG=
+
+ifeq ($(ALGO),rast)
+SEGMENTATION=rast
+else
+SEGMENTATION=voronoi
+endif
+
+#ALGO=rast
+#ALGO=voronoi
 
 all : $(OUTPUT)
 
-# @echo is for debugging; remove when running
 $(OUTPUT) :
-#@echo python runseg.py --docid $(basename $(notdir $@)) --seg $(ALGO)
-	python runseg.py --docid $(basename $(notdir $@)) --seg $(ALGO)
+	$(DEBUG) python runseg.py --docid $(basename $(notdir $@)) --seg $(SEGMENTATION)
 
