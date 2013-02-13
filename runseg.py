@@ -17,9 +17,8 @@ import signal
 from basename import get_basename 
 import drawxml
 
-output_dir = "/tmp/"
-
-num_rows = 300
+num_rows = 600
+#num_rows = 300
 uwiii_imgdir = "IMAGEBIN/"
 uwiii_xmldir = "ZONEXML/"
 
@@ -51,6 +50,7 @@ def get_document_id_from_basename( basename ) :
     # UW-III document ID
     fields = basename.split("_")
     document_id = fields[0]
+
     return document_id
 
 running_filename = None
@@ -67,14 +67,15 @@ def handler( signum, frame ) :
 
     os.kill(pid,signal.SIGKILL )
 
-def run_image_with_gtruth( imgfilename, gtruth_xml_filename ) :
+def run_image_with_gtruth( imgfilename, gtruth_xml_filename, output_dir ) :
     basename = get_basename(imgfilename)
 
     document_id = get_document_id_from_basename( basename )
-    out_imgfilename = output_dir + "{0}_{1}.png".format( 
-                        basename, segmentation_algorithm )
-    xml_filename = output_dir + "{0}_{1}.xml".format( 
-                        basename, segmentation_algorithm ) 
+
+    out_imgfilename = os.path.join( output_dir, "{0}_{1}.png".format(
+                        basename, segmentation_algorithm ))
+    xml_filename = os.path.join( output_dir, "{0}_{1}.xml".format( 
+                        basename, segmentation_algorithm ) )
 
     # inputs
 #    print "imgfilename=",imgfilename
@@ -135,7 +136,6 @@ def run_image_with_gtruth( imgfilename, gtruth_xml_filename ) :
 
 def run_all_uwiii( ) :
     # run all UW-III images
-    global output_dir
     output_dir = "fullpage/"
 
     result_list = []
@@ -184,18 +184,18 @@ def run_all_uwiii( ) :
             result["metric"] )
     outfile.close()
 
-def run_file_list( img_filelist, xml_filelist, output_basename ) :
+def run_file_list( img_filelist, xml_filelist, output_dir, output_basename ) :
 
     result_list = []
 
-    pickle_filename = output_dir + output_basename + ".pkl"
-    dat_filename = output_dir + output_basename + ".dat"
+    pickle_filename = os.path.join( output_dir, output_basename + ".pkl" )
+    dat_filename = os.path.join( output_dir, output_basename + ".dat" )
 
     for imgfilename,gtruth_xml_filename in zip(img_filelist, xml_filelist) :
         basename = get_basename(imgfilename)
         document_id = get_document_id_from_basename( basename )
 
-        result = run_image_with_gtruth( imgfilename, gtruth_xml_filename )
+        result = run_image_with_gtruth( imgfilename, gtruth_xml_filename, output_dir )
         result_list.append( result ) 
 
         # save pickled file so can do interesting things with the results later
@@ -213,7 +213,7 @@ def run_file_list( img_filelist, xml_filelist, output_basename ) :
             continue
         
         # draw the resulting XML onto the original input image
-        out_imgfilename = output_dir + "{0}_zones.png".format(basename)
+        out_imgfilename = os.path.join(output_dir, "{0}_zones.png".format(basename) )
 
         if os.path.exists( out_imgfilename ) : 
             print "{0} already exists; not redrawing".format( out_imgfilename ) 
@@ -262,15 +262,13 @@ def run_image( document_id ) :
     
     img_file_list,xml_file_list = get_file_lists( document_id )
 
-    global output_dir
-
-    output_dir = "{0}_{1}/{2}/".format( 
-                    num_rows, segmentation_algorithm, document_id )
+    s = "{0}_{1}".format( num_rows, segmentation_algorithm  )
+    output_dir = os.path.join( s, document_id )
 
     if not os.path.exists(output_dir) :
         os.mkdir(output_dir)
 
-    run_file_list( img_file_list, xml_file_list, document_id )
+    run_file_list( img_file_list, xml_file_list, output_dir, document_id )
 
 def run_dir( dirname ) : 
     img_dir_list = glob.glob(dirname) 
