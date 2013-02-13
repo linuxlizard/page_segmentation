@@ -19,8 +19,8 @@ import zonebox
 import zone2xml
 import gtruthxml
 
-num_rows_in_strip = 300
-num_rows_to_slide  = 10
+num_rows_in_strip = 600
+num_rows_to_slide  = 20
 #output_dir = str(num_rows_in_strip)
 
 def write_image( data, outfilename ) : 
@@ -91,8 +91,10 @@ def make_all_gtruth_xml( box_strip_list, data, output_dir, basename) :
             box_intersect_list.append( isect )
 
         # save the intersections as XML
-        xmlfilename = output_dir + "/" + outfilename_fmt.format( 
-                basename, num_rows_in_strip, num_rows_to_slide, row )
+        xmlfilename = os.path.join(output_dir, outfilename_fmt.format( 
+                basename, num_rows_in_strip, num_rows_to_slide, row ) )
+#        xmlfilename = output_dir + "/" + outfilename_fmt.format( 
+#                basename, num_rows_in_strip, num_rows_to_slide, row )
 #        print xmlfilename
 
         with open(xmlfilename,"w") as outfile :
@@ -114,7 +116,8 @@ def make_output_dir( basename ) :
     
 #    global output_dir
     
-    output_dir = "{0}/{1}/".format( num_rows_in_strip, basename )
+    output_dir = os.path.join( str(num_rows_in_strip), basename )
+#    output_dir = "{0}/{1}/".format( num_rows_in_strip, basename )
 
     if os.path.exists( output_dir ) :
         return output_dir
@@ -127,7 +130,7 @@ def make_sliding_strips_from_box( boxfilename ) :
     basename = get_basename( boxfilename )
 
     # create the output directory for all the files I'm about to create
-    make_output_dir(basename)
+    output_dir = make_output_dir(basename)
 #    return
     
     box_list = zonebox.load_boxes( boxfilename ) 
@@ -139,7 +142,7 @@ def make_sliding_strips_from_box( boxfilename ) :
     # get the image as a numpy array
     data = mkslices.load_image( imgfilename )
 
-    strip_list = make_all_strips_images( data, basename )
+    strip_list = make_all_strips_images( data, basename, output_dir )
 
     # 
     # Now make the ground truth files for each strip
@@ -149,7 +152,7 @@ def make_sliding_strips_from_box( boxfilename ) :
     box_strip_list = [ rects.Strip(box=box) for box in box_list ]
 
     # slice up the ground truth into individual XML files 
-    make_all_gtruth_xml( box_strip_list, data, basename ) 
+    make_all_gtruth_xml( box_strip_list, data, output_dir, basename ) 
 
 def make_sliding_strips_from_image( imgfilename, output_dir ) : 
     basename = get_basename( imgfilename ) 
@@ -160,7 +163,8 @@ def make_sliding_strips_from_image( imgfilename, output_dir ) :
 
 def awinder( ) : 
     # slice up Amy Winder's images 
-    output_dir_base = "300_winder/"
+    output_dir_base = "{0}_winder/".format(num_rows_in_strip)
+#    output_dir_base = "300_winder/"
 
     for imgfilename in sys.argv[1:] :
         basename = get_basename(imgfilename)
@@ -170,8 +174,12 @@ def awinder( ) :
         input_path = input_path.replace( "/png", "/" )
 
         output_dir = output_dir_base + input_path + basename
+        print output_dir
 
-        if not os.path.exists(output_dir) : 
+        if os.path.exists(output_dir) : 
+            print "{0} exists so assume files are OK".format(output_dir)
+            continue
+        else:
             os.makedirs(output_dir)
 
         make_sliding_strips_from_image( imgfilename, output_dir )
@@ -180,7 +188,17 @@ def awinder( ) :
         xmlfilename = xmlfilename.replace("png","gTruth")
         print xmlfilename
 
-        zone_list = gtruthxml.parse_xml( xmlfilename )
+        try : 
+            zone_list = gtruthxml.parse_xml( xmlfilename )
+        except IOError,e:
+            if e.errno==2 :
+                # some of the files are living in a ./xml subdir
+                xmlfilename = imgfilename.replace(".png",".xml")
+                xmlfilename = xmlfilename.replace("png","gTruth/xml")
+                zone_list = gtruthxml.parse_xml( xmlfilename )
+            else :
+                raise
+
         print zone_list
 
         # get the image as a numpy array
@@ -194,6 +212,6 @@ def main() :
         make_sliding_strips_from_box( boxfilename )
 
 if __name__=='__main__': 
-#    main()
-    awinder()
+    main()
+#    awinder()
 
