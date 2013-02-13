@@ -39,3 +39,7 @@ nosetests.xml
 *.swp
 *.dat
 *.gz
+*.eps
+.DS_Store
+*.npy
+*.docx
