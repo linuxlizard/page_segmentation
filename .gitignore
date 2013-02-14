@@ -40,6 +40,17 @@ nosetests.xml
 *.dat
 *.gz
 *.eps
+*.pdf
 .DS_Store
 *.npy
 *.docx
+300/
+300_*/
+300_*/
+fullpage_rast/
+imagesAndgTruth
+600/
+600_*/
+IMAGEBIN
+ZONEBOXES
+
