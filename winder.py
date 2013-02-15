@@ -8,6 +8,7 @@ import os
 import os.path
 import glob
 import Image
+import pickle
 
 import runseg
 from basename import get_basename
@@ -128,6 +129,62 @@ def main() :
 
             runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
 
+def load_image_and_xml_list( dirname ) :
+    # sweep a dir; load the list of .png and corresponding ground truth .xml
+    # files. Store in a .pkl as cache
+
+    img_filelist = []
+    xml_filelist = []
+    pklfilename = dirname+".pkl"
+
+    test = 0
+
+    if os.path.exists(pklfilename) : 
+        pfile=open(pklfilename,"rb")
+        img_filelist,xml_filename = pickle.load(pfile)
+        pfile.close()
+        return img_filelist,xml_filelist
+
+    for root,dirs,files in os.walk(dirname) :
+        for f in files : 
+            path=os.path.join(root,f)
+            if path.endswith(".png") : 
+                imgfilename = path
+                basename = get_basename(imgfilename)
+
+                if test : 
+                    img = Image.open(path)
+                    img.load()
+                    del img
+
+                # look for the xmlfile
+                xmlfilename = path.replace(".png",".xml")
+
+                if test: 
+                    f = open(xmlfilename,"r")
+                    f.close()
+
+                print imgfilename, xmlfilename
+                img_filelist.append( imgfilename )
+                xml_filelist.append( xmlfilename )
+    
+    pfile = open(pklfilename,"wb")
+    pickle.dump((img_filelist,xml_filelist),pfile)
+    pfile.close()
+    
+    return img_filelist,xml_filelist
+
+def main_2() :
+    output_dir = "600_winder_{0}".format(runseg.segmentation_algorithm)
+    dirname = "600_winder"
+
+    img_filelist, xml_filelist = load_image_and_xml_list( dirname )
+
+    test = 0
+
+#    runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
+
 if __name__=='__main__' : 
-    main()
+#    main()
+    main_2()
 
