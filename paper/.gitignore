@@ -1,0 +1,8 @@
+*.eps
+*.pdf
+*.dvi
+*.log
+*.aux
+bare_*.tex
+changelog.txt
+
