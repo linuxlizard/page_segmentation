@@ -13,8 +13,11 @@ import pickle
 import runseg
 from basename import get_basename
 
-root = "imagesAndgTruth"
+num_rows=600
+
+#root = "imagesAndgTruth"
 #root = "300_winder/imagesAndgTruth"
+root = "600_winder/imagesAndgTruth"
 
 #runseg.segmentation_cmd = "./rast-ocropus"
 #runseg.segmentation_algorithm = "rast"
@@ -27,6 +30,8 @@ def main() :
     for rdir in root_dirs : 
         # skip the subversion directories
         if ".svn" in rdir: 
+            continue
+        if ".DS_Store" in rdir: 
             continue
 
         print "dir=",rdir
@@ -77,15 +82,19 @@ def main() :
 
             xml_filelist.append( xmlfile )
 
-        output_dir = os.path.join("300_winder_fullpage_vor",rdir,"300dpi")
+        print img_filelist
+        print xml_filelist
+
+        s = "{0}_winder_{1}".format(numrows,runseg.segmentation_algorithm)
+        output_dir = os.path.join(s,rdir,"300dpi")
 #        output_dir = os.path.join("300_winder_fullpage_rast",rdir,"300dpi")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         output_basename = rdir
-        runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
+#        runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
 
-        continue
 
+def foo() :
         for imgdir in image_dirs : 
             print "imgdir=",imgdir
             # did we land in a dir with png files? 
@@ -133,17 +142,19 @@ def load_image_and_xml_list( dirname ) :
     # sweep a dir; load the list of .png and corresponding ground truth .xml
     # files. Store in a .pkl as cache
 
-    img_filelist = []
-    xml_filelist = []
     pklfilename = dirname+".pkl"
 
     test = 0
 
     if os.path.exists(pklfilename) : 
         pfile=open(pklfilename,"rb")
-        img_filelist,xml_filename = pickle.load(pfile)
+        img_filelist,xml_filelist = pickle.load(pfile)
         pfile.close()
+        print "loaded from pickle"
         return img_filelist,xml_filelist
+
+    img_filelist = []
+    xml_filelist = []
 
     for root,dirs,files in os.walk(dirname) :
         for f in files : 
@@ -175,14 +186,58 @@ def load_image_and_xml_list( dirname ) :
     return img_filelist,xml_filelist
 
 def main_2() :
-    output_dir = "600_winder_{0}".format(runseg.segmentation_algorithm)
-    dirname = "600_winder"
+    def make_outdir(img_filename) :
+        # split a png filename into an appropriate output path
+        pathname,filename = os.path.split(img_filename)
+#        print pathname
+#        print filename
+        dirlist = pathname.split(os.sep)
+#        print dirlist, dirlist[1:]
+        outdir = os.path.join(*dirlist[1:])
+#        print outdir
+        return outdir
 
-    img_filelist, xml_filelist = load_image_and_xml_list( dirname )
+    output_dir_base = "600_winder_{0}".format(runseg.segmentation_algorithm)
+    input_dirname = "600_winder"
 
-    test = 0
+    img_filelist, xml_filelist = load_image_and_xml_list( input_dirname )
 
-#    runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
+    output_dir_hash = {}
+    for i,x in zip(img_filelist,xml_filelist) : 
+        od = make_outdir(i)
+        if not od in output_dir_hash : 
+            output_dir_hash[od] = []
+
+        output_dir_hash[od].append( get_basename(i) )
+
+    pklname = "{0}_output_dir_hash.pkl".format(input_dirname)
+    f = open( pklname, "wb" )
+    pickle.dump(output_dir_hash,f)
+    f.close()
+#    print "wrote",pklname
+
+#    fname_fmt = "{0}_{1}".format( input_dirname
+    for dirname in output_dir_hash.keys() : 
+
+        filelist = [ os.path.join(input_dirname,dirname,f) for f in
+                            output_dir_hash[dirname] ]
+        img_filelist = [ s+".png" for s in filelist ] 
+        xml_filelist = [ s+".xml" for s in filelist ] 
+
+        output_basename = os.path.split(dirname)[-1]
+        print img_filelist[0]
+        print xml_filelist[0]
+
+        output_dir = os.path.join(output_dir_base,dirname)
+        print "outputdir=",output_dir
+        print output_basename
+
+        if not os.path.exists(output_dir) :
+            os.makedirs(output_dir)
+
+        runseg.run_file_list( img_filelist, xml_filelist, output_dir, output_basename )
+
+        sys.exit(0)
 
 if __name__=='__main__' : 
 #    main()
