@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 # Load ocropus output metric dat files. Draw many delightful graphs.
-#
 # davep 09-Feb-2013
+#
+# If I had more forethought, I would have done this as a Makefile :-/
+# davep 14-Feb-2013
 
 import os
 import sys
@@ -138,20 +140,21 @@ def get_winder_class_results(class_dir) :
     # gather all the datafiles from the fullpage winder
     fullpage_winder = datfile.find_all(class_dir)
 
-    class_means = []
+    class_data = []
     class_names = []
     for datfilename in fullpage_winder : 
-        print datfilename
-
         ndata = datfile.load(datfilename)
         basename = get_basename(datfilename)
-        print basename, np.mean(ndata)
-        class_means.append( np.mean(ndata) )
+        class_data.append( np.mean(ndata) )
         class_names.append( basename.replace( "_"," ") )
 
-    return (class_means,class_names)
+    return (class_data,class_names)
 
 def draw_winder_class_results() : 
+    outfilename = "winder_class_rast_vs_vor.eps"
+    if os.path.exists(outfilename) : 
+        # already exists; don't draw
+        return
 
     rast_means, rast_names = get_winder_class_results( "300_winder_fullpage_rast" )
     vor_means, vor_names = get_winder_class_results( "300_winder_fullpage_vor" )
@@ -172,7 +175,6 @@ def draw_winder_class_results() :
     ax.set_xticklabels( vor_names, rotation='vertical' )
     ax.legend( (rects1[0],rects2[0]),('RAST','Vor'))
 
-    outfilename = "winder_class_rast_vs_vor.eps"
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(outfilename)
     print "wrote", outfilename
@@ -242,9 +244,6 @@ def graph_all_results() :
 
     # draw a graph of each class of the winder dataset
     draw_winder_class_results()
-    
-#    ndata = load_all_datfiles( "300_winder_fullpage_vor" ) 
-#    make_histogram( ndata, "300_winder_fullpage_vor.eps", title="300 Winder Fullpage Voronoi" )
 
 def usage() : 
     print >>sys.stderr, "usage: drawgraphs [list of datfiles]"
@@ -274,5 +273,6 @@ def main() :
 
 if __name__=='__main__':
 #    main()
-    graph_all_results()
+   graph_all_results()
+
 
