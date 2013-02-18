@@ -13,6 +13,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import itertools
 
 from basename import get_basename
 import datfile
@@ -179,6 +180,61 @@ def draw_winder_class_results() :
     canvas.print_figure(outfilename)
     print "wrote", outfilename
 
+def draw_qualitative() : 
+    print "drawing qualitative"
+    # draw 300, 600, full mean accuracy for both winder and uwiii
+
+    dataset_list = ( "winder", "uwiii" )
+    stripsize_list = ( "300", "600", "fullpage" )
+    algorithm_list = ( "rast", "vor" )
+
+    for p in itertools.product(dataset_list,stripsize_list) : 
+        print p
+
+    # populate a hash keyed by dataset_algo, e.g., "winder_rast"
+    # values will be arrays of npdata (300,600,fullpage) of the metrics 
+    qual_data = {}
+    for dataset in dataset_list : 
+        for algo in algorithm_list : 
+            key = "{0}_{1}".format( dataset, algo )
+            qual_data[key] = []
+            for stripsize in stripsize_list : 
+                data_list = datfile.loaddb( dataset=dataset, stripsize=stripsize, algorithm=algo )
+                # join all the metrics together
+                all_metric = np.concatenate( [ d["metrics"] for d in data_list ] )
+                # array, in order 300,600,1200
+                # this is the data we will plot
+                qual_data[key].append( all_metric )
+                # break the reference
+                all_metric = None
+
+    fig = Figure()
+    ax = fig.add_subplot(111)
+    print type(ax)
+    ax.grid()
+    ax.set_ylim(0,1.0)
+    print ax.axis()
+    line_fmt_list = ( '-', '--', '-.', ':' )
+    line_fmt = iter(line_fmt_list)
+    key_list = sorted(qual_data.keys()) 
+    for key in key_list : 
+        # plot the 300,600,fullpage
+        print key
+        metric_means = [np.mean(m) for m in qual_data[key]]
+        metric_errs = [np.std(m) for m in qual_data[key]]
+        print metric_means, metric_errs
+#        ax.errorbar( (0,1,2), metric_means, yerr=metric_errs, fmt="o-" )
+        ax.plot( metric_means, "kx"+line_fmt.next() )
+    print ax.axis()
+
+    # draw legend in upper left
+    ax.legend(key_list,loc=2)
+    ax.set_xticklabels( ("300","","600","","full"))
+
+    outfilename = "all_qual.eps"
+    canvas = FigureCanvasAgg(fig)
+    canvas.print_figure(outfilename)
+    print "wrote", outfilename
 
 def graph_all_results() : 
     result_list = [ 
@@ -244,6 +300,9 @@ def graph_all_results() :
 
     # draw a graph of each class of the winder dataset
     draw_winder_class_results()
+
+    # draw ALL THE RESULTS on one graph
+    draw_qualitative()
 
 def usage() : 
     print >>sys.stderr, "usage: drawgraphs [list of datfiles]"
