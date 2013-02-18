@@ -107,7 +107,7 @@ db_fields_list = ( "filename" ,
               "algorithm" ,
               "stripsize" ,
               "dataset" ,
-              "class" ,
+              "imgclass" ,
               "metrics"  )
 
 # empty hash with fields that become the fields in our DB
@@ -116,7 +116,7 @@ db_fields = dict( [ (k,None) for k in db_fields_list] )
 #              "algorithm" : None,
 #              "stripsize" : None,
 #              "dataset" : None,
-#              "class" : None,
+#              "imgclass" : None,
 #              "metrics" : None }
 
 valid_stripsizes = ( "300", "600", "fullpage" )
@@ -139,7 +139,7 @@ def decode_winder_filename(filename) :
 #           "algorithm" : None,
 #           "stripsize" : None,
 #           "dataset" : None,
-#           "class" : None }
+#           "imgclass" : None }
     fields = dict(db_fields)
     fields["dataset"] = "winder"
 
@@ -149,19 +149,19 @@ def decode_winder_filename(filename) :
 
     fields["filename"] = filename
 
-    # get the class name from the dirname
+    # get the imgclass name from the dirname
     dirnames = filename.split(os.sep)
 
     # the results are in directory trees with two different styles
     if "imagesAndgTruth" in filename : 
-        fields["class"] = dirnames[2]
+        fields["imgclass"] = dirnames[2]
         fields["stripsize"],owner,fields["algorithm"]= dirnames[0].split("_")
     else : 
-        fields["class"] = dirnames[1]
+        fields["imgclass"] = dirnames[1]
         fields["stripsize"] = "fullpage"
         x,x,fields["algorithm"]= dirnames[0].split("_")
         
-    assert fields["class"] in valid_classnames, fields["class"]
+    assert fields["imgclass"] in valid_classnames, fields["imgclass"]
     assert fields["stripsize"] in valid_stripsizes, fields["stripsize"]
 
     return fields
@@ -179,7 +179,7 @@ def decode_uwiii_filename( filename ) :
 
     # classname is the first letter of the data directory name
     # e.g., "A001ZONE" is the 'A' dataset
-    fields["class"] = dirnames[-1][0]
+    fields["imgclass"] = dirnames[-1][0]
 
     return fields
 
@@ -196,7 +196,42 @@ def store_result_data_to_db( cur, results ) :
 #            print f
             cur.execute( "INSERT INTO pageseg VALUES(?,?,?,?,?,?)",
                 (f["filename"],f["algorithm"],f["stripsize"],
-                 f["dataset"],f["class"],data.tostring()))
+                 f["dataset"],f["imgclass"],data.tostring()))
+
+def loaddb( **kargs ): 
+    # run a db query using function keywords and their values as the col=value
+    # in the SQL query
+    # e.g, = loaddb( dataset="winder", stripsize="600", imgclass="Magazine" )
+    
+    # sanity check the args
+    for k in kargs.keys() : 
+        assert k in db_fields_list, k
+
+    query_elements = [ "{0}=?".format(k) for k in kargs.keys() ]
+    query = " and ".join( query_elements )
+#    print query
+    values = kargs.values()
+#    print values
+
+    conn = sqlite3.connect("pageseg.db")
+    conn.text_factory = str
+    cur = conn.cursor()
+
+    query = "SELECT * FROM pageseg WHERE " + query
+
+#    print query
+    cur.execute(query, values)
+
+    data = [ dict(zip(db_fields_list,r)) for r in cur.fetchall() ]
+
+    # convert the metrics field to a numpy array (from the string as it's
+    # stored in the DB)
+    for d in data : 
+        d["metrics"] = np.fromstring(d["metrics"],dtype="float")
+
+    conn.close()
+
+    return data
 
 def save_to_sqlite() : 
     winder_results, uwiii_results = load_all_results()
@@ -218,7 +253,7 @@ CREATE TABLE IF NOT EXISTS pageseg
      algorithm text,
      stripsize text,
      dataset text,
-     class text, 
+     imgclass text, 
      metrics text)
 """
     cur.execute( creat )
@@ -227,7 +262,7 @@ CREATE TABLE IF NOT EXISTS pageseg
     store_result_data_to_db( cur, uwiii_results )
 
     # my UW-III fullpage rast and voronoi are in separate datafiles
-    # I ran them on multiple machines, splitting the jobs by class and by
+    # I ran them on multiple machines, splitting the jobs by imgclass and by
     # algorithm.
     # The datafile contains lines like:
     # fullpage_vor/A001BIN_vor.png fullpage_vor/A001BIN_vor.xml 0.0
@@ -259,11 +294,11 @@ CREATE TABLE IF NOT EXISTS pageseg
             f["stripsize"] = "fullpage"
             f["dataset"] = "uwiii"
             # first letter of the base e.g., W1U8BIN_vor
-            f["class"] = basename[0] 
+            f["imgclass"] = basename[0] 
 
             cur.execute( "INSERT INTO pageseg VALUES(?,?,?,?,?,?)",
                 (f["filename"],f["algorithm"],f["stripsize"],
-                 f["dataset"],f["class"],data.tostring()))
+                 f["dataset"],f["imgclass"],data.tostring()))
 
     conn.commit()
     conn.close()
@@ -291,8 +326,15 @@ def test_db() :
 
     conn.close()
 
+    winder = loaddb( dataset="uwiii", stripsize="600", imgclass="C" )
+#    winder = loaddb( dataset="winder", stripsize="fullpage" )
+#    winder = loaddb( dataset="winder", stripsize="300" )
+    for w in winder : 
+#        metrics = np.fromstring(w["metrics"],dtype="float") 
+        print w["imgclass"], np.shape(w["metrics"]), np.mean(w["metrics"])
+
 if __name__=='__main__':
 #    load_all_results()
-    save_to_sqlite()
-#    test_db()
+#    save_to_sqlite()
+    test_db()
 
