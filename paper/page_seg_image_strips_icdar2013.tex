@@ -140,7 +140,7 @@
   % driver is specified.
   \usepackage[dvips]{graphicx}
   % declare the path(s) where your graphic files are
-  \graphicspath{{.}}
+  \graphicspath{{../}}
   % and their extensions so you won't have to specify these with
   % every instance of \includegraphics
   \DeclareGraphicsExtensions{.eps}
@@ -353,17 +353,17 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{}
+\title{Study of Page Segmentation Performance Using Horizontal Image Strips Rather than Full Page Images.}
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
 \author{\IEEEauthorblockN{David Poole}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
+\IEEEauthorblockA{Marvell Semiconductor Inc.
 \\
 Boise, ID  \\
-Email: }
+Email: dpoole@marvell.com}
 \and
 \IEEEauthorblockN{Dr. Elisa Barney-Smith}
 \IEEEauthorblockA{Boise State University\\
@@ -411,20 +411,18 @@ Email: }
 Most page segmentation algorithms are geared toward full page analysis.
 However, in resource constrained environments, a full page is not available. In
 a consumer product such as a dedicated desktop scanner or MFP (Multi-Function
-Printer), typical memory resources are much smaller than a modern
-desktop PC. Storing a full page would require a cost prohibitive amount of
-memory. The image processing benefits of page segmentation would be
-advantageous even in a smaller platform.
+Printer), typical memory resources are very small
+Storing a full page would require a cost prohibitive amount of
+memory. 
 
 We study two page segmentation algorithms (Voronoi, RAST) to discover
 how each algorithm behaves against a smaller image subset. The OCRopus page
 segmentation toolkit is used as the basis of this work. 
 
-The tests are run against the UW-III LINEWORD set with the ground truth
-modified into smaller rectangular strips. The input images are divided into
-strips of one inch (300 rows). The full page segmentation performance of
-OCRopus is measured. The results are then compared against the OCRopus
-performance with each set of smaller strips. 
+The tests are run against a set of scanned document images with know ground
+truth text/non-text zones.  The input images are divided into strips. The full
+page segmentation performance of OCRopus is measured. The results are then
+compared against the OCRopus performance with each set of smaller strips. 
 
 Our evaluation shows RAST is the best performer in an image strip page
 segmentation. While performance is degraded over a full page analysis, the
@@ -458,17 +456,9 @@ performance in an image strip page segmentation.
 \section{Introduction}
 % no \IEEEPARstart
 
-Most page segmentation algorithmns are tested against a full-page image. The
-published algorithms on the topic were all tested and studied against a full-page
-image.
-
-In a consumer level scanner or MFP (Multi-Function printer—a scanner+printer
-combination) a full image, even at low resolution, exceeds available
-memory. IN the consumer marker, a scanner/MFP is a commodity and, as such, cost
-is the driving factor. A very small amount of memory is available for use
-during a scan/copy. A full 300 dpi monochrome image is 8M. A color scan/copy is
-25M. At higher qualities, a 600 dpi scan would be over 100M. A typical consumer
-MFP would have between 8M and 128M. 
+Page segmentation is useful for dividing a scanned image into zones. Different
+image zones can be optimized differently depending on their content. This paper
+focuses only on text and non-text zones. 
 
 Even in a resource-constrained environment, image quality is still a
 requirement. Being able to differentiate a text region from a graphics region
@@ -477,12 +467,24 @@ use a heavy contrast (clip to black/white) and sharpen. A graphics region
 should preserve as much dynamic range as possible. A smooth or even a halftone
 descreen could also be performed on a graphics region.
 
+In a consumer level scanner or MFP (Multi-Function printer—a scanner+printer
+combination) a full image, even at low resolution, exceeds available
+memory. In the consumer marker, a scanner/MFP is a commodity and, as such, cost
+is the driving factor. A very small amount of memory is available for use
+during a scan/copy. A full 300 dpi monochrome image is 8M. A color scan/copy is
+25M. At higher qualities, a 600 dpi scan would be over 100M. A typical consumer
+MFP has between 8M and 128M. 
+
+Most page segmentation algorithmns are tested against a full-page image. The
+published algorithms on the topic were all tested and studied against a full-page
+image.
+
 This paper explores the behavior of two page segmentation algorithms on image
 strips.  An image strip is a full-page width but smaller height of the original
 image. The strip results are compared to the full-page results. The goal of the
 experiment is to find a page segmentation algorithm that best scales downward
 to image strips. The best algorithm would be the topic of further study toward
-tuning the algorithm for image strips.
+tuning the algorithm for page segmentation with image strips.
 
 
 \subsection{Subsection Heading Here}
@@ -503,44 +505,58 @@ Caere Corporation and ScanSoft Corporation. [Document structure analysis
 algorithms] not only cataloged many segmentation algorithms but their
 performance as well.
 
+%
+%  Describing the Method of the Experiments
+%
 \section{Method}
 This study leveraged from working previously performed by Amy Winder
-[footnote]. In [winder], the ocropus v0.4.3 was extended with additional page
+[footnote]. In \cite{IEEEhowto:Winder}, the OCRopus v0.4.3 was extended with additional page
 segmentation capabilities. The Voronoi algorithm was extended. Also, XYCut and
-RAST were extended to add XML zone output. The XML zone output allowed a
+RAST were extended to add XML zone output. The XML zone output allowed 
 measurement of the improvement in page segmentation.
 
-This study uses the XML output from [winder] from the RAST and Voronoi page
+This study uses the XML output from \cite{IEEEhowto:Winder} from the RAST and Voronoi page
 segmentation algorithms. Voronoi was judged to be of high quality in [“six
 algorithms for page segmentation”]. The RAST algorithm was not part of the
 [“six algorithms”] paper. 
 
 The RAST and Voronoi page segmentation programs read a PNG file and output a
 segmented PNG image and an XML zone file. The metric comparison is the same as
-used in [winder] which is the same as used in [pset]. The metric comparison
+used in \cite{IEEEhowto:Winder} which is the same as used in [pset]. The metric comparison
 reads a ground truth XML zone file and an output XML file. A metric [0,1.0] is
 output where 0 is no match and 1.0 is full match. 
 
-The ground truth pages used in this study is the UW-III “LINEWORD” set of 1600
-pages. Also used were the ground truth images used in [winder]. The [winder]
-images are simple high quality scanned pages consisting of one or two columns
-of text, some pages interspersed with images. All images tested were 300 dpi.
-The pages were divided into strips of 1”, 2” or 300 rows and 600 rows, a small
-enough amount to fit within the constrained memory. 
+The ground truth pages used in this study are from the UW-III “LINEWORD” set of
+1600 pages. Also used were the ground truth images used in \cite{IEEEhowto:Winder}. The
+\cite{IEEEhowto:Winder} images are simple high quality scanned pages consisting of one or two
+columns of text, some pages interspersed with images. All images tested were
+300 dpi.  The pages were divided into strips of 1”, 2” (300 rows and 600 rows),
+a small enough amount to fit within the constrained memory. 
 
-Table:
-1” 300 rows 780kB mono  2.34MB RGB color
-2” 600 rows 1.56MB mono  4.68MB RGB color
+%\begin{tabular}
+%\begin{tabular}{|r|l|}
+%\hline
+%    1 inch  & 300 rows  & 780kB mono  & 2,34MB RGB color \\
+%    2 inches  & 600 rows  & 1,56MB mono  & 4,68MB RGB color \\
+%    11 inches & 3300 rows & 8,5M mono & 25,2MB RGB color \\
+%%    1 inch  & 300 rows  & 780kB mono  & 2.34MB RGB color \\
+%%    2 inches  & 600 rows  & 1.56MB mono  & 4.68MB RGB color \\
+%%    11 inches & 3300 rows & 8.5M mono & 25.2MB RGB color \\
+%\hline
+%\label{table:image-size}
+%\end{tabular}
 
-Sliding a window down the page image, 10 rows at a time, generated the strips.
-The sliding window simulated the scanned image in memory. As new rows arrive,
-the oldest rows are ejected. Only a fixed size strip is in memory at a
-time. Each LINEWORD image was split into 330 PNG files of 300 rows each.
-Given the 1600 UW-III LINEWORD images, there were over 500,000 files
-computed.
+A window was slid down the page image, 10 rows at a time, generating the 300
+row strips. A window size of 20 rows was used for the 600 row strips.  The
+sliding window simulated the scanned image in memory. As new rows arrive, the
+oldest rows are ejected. Only a fixed size strip is in memory at a time. Each
+LINEWORD image was split into 330 PNG files of 300 rows each and 165 PNG files
+of 600 rows each.  Given the 1600 UW-III LINEWORD images, there were over
+520,000 files computed for the 300 row strips and 260,000 files for the 600 row
+strips.
 
 The UW-III images contain ZONEBOX “.box” files indicating ground truth text
-areas of the images. In order to compare the strips images against a known
+areas of the images. In order to compare the strip images against a known
 ground truth, the ZONEBOX files were also divided into strips. A Python script
 parsed the .box files into a set of four point rectangles. A full page width
 strip rectangle of 300 or 600 rows was then intersected against all the
@@ -553,20 +569,24 @@ The RAST and Voronoi page segmentation programs were run against the new strip
 image. The output XML was saved to a separate file. The zone comparison program
 was run against the sliced ground truth file and the experimental results. The
 RAST and Voronoi page segmentation programs were also run against the full page
-to create a baseline of behavior of the two algorithms. 
+to create a baseline of behavior of the two algorithms.  Neither program
+performs any preprocessing on the incoming image other than binarization.
 
-\section{RAST and Voronoi with OCRopus}
-While the algorithms used in this paper were RAST and Voronoi, the code that
-did the actual page segmentation was two separate executables, both based on on
-OCRopus 4.3.2. The two programs instantiated an instance of the OCRopus
-segmentation class, SegmentPageByRAST() and SegmentPageByVoronoi(),
-respectively. Neither program performs any preprocessing on the incoming image
-other than binarization.
+%\section{RAST and Voronoi with OCRopus}
+%While the algorithms used in this paper were RAST and Voronoi, the code that
+%did the actual page segmentation was two separate executables, both based on on
+%OCRopus 4.3.2. The two programs instantiated an instance of the OCRopus
+%segmentation class, SegmentPageByRAST() and SegmentPageByVoronoi(),
+%respectively. 
 
-\subsection{RAST}
+%\subsection{RAST}
+%
+%\subsection{Voronoi}
 
-\subsection{Voronoi}
 
+%
+%  Describing the Performance Metrics
+%
 \section{Performance Metrics}
 ``To quantitatively evaluate algorithms, a meaningful and computable metric is
 essential.'' [Empirical Performance Evaluations of Page Segmentation Algorithms]
@@ -579,7 +599,7 @@ form a Text-line Accuracy.
 
 The metric chosen in this paper is based on finding only text/non-text zones.
 The UW-III ZONEBOX files were particularly well adapted to this simple
-metric. The [winder] test image set was divided into bounding boxes for text
+metric. The \cite{IEEEhowto:Winder} test image set was divided into bounding boxes for text
 and non-text zones. 
 
 The metric itself was calculated using the zone comparison program written as
@@ -619,13 +639,58 @@ wrong matches.
 \end{tabular}
 
 \section{Results}
-The first results are against the [winder] data set. The [winder] data set is a
-relatively clean set of images without a lot of challenging artifacts in the
-UW-III images.
+
+% All 300,600,full rast,vor winder,uwiii on one graph
+\begin{figure}[all-qualitative]
+\includegraphics[width=6.0cm]{all_qual.eps}
+\caption{UW-III and Winder Segmentation Results}
+\label{fig:all-qualitative}
+\end{figure}
+
+All images from both the Winder and the UW-III datasets with 
+the 300, 600 row strips, and the fullpage were run with both the RAST and
+Voronoi algorithms. Comparing the results of stripsize vs algorithm per dataset
+is shown in Figure~\ref{fig:all-qualitative}. The Winder data set is much
+cleaner than the UW-III dataset so the better results for Winder are no
+surprise. The goal of this research is to find the algorithm that compares best
+to segmenting a full page image when the image is shrunk to a small strip. The
+RAST algorithm appears to perform much better than Voronoi on both data sets.
+RAST on a 300 row vs a 600 row strip in the Winder dataset is little changed.
+300 and 600 performed almost identically but not as well as a full page. There
+was very little additional improvement in going from a 300 row strip to a 600
+row strip which would indicate the smaller strip size (and corresponding lower
+memmory requirements) work well.
+
+The UW-III results are more puzzling. The degradation of results from the
+strip images to the full page is understandable given the extra challenges in
+the UW-III dataset images. When the image was broken up into horizontal strips,
+we avoided some of the page scanning artifacts. The UW-III Voronoi results are
+show an increase in performance from 300 to 600 then a sharp drop. That result
+needs further exploration.
+
+Overall, the results are encouraging. The segmentation algorithms performed
+better on the image strips that the full page. There were several 1.0 (perfect
+match) image strip results. A perfect match would usually occur with
+pages with little page edge noise and clearly aligned blocks of text.  
+
+\begin{figure}[strip-image-showing-perfect-hit]
+\includegraphics[width=6.0cm]{A00AZONE_300_010_0360_zones.eps}
+\caption{Strip Image with Perfect Zone Discovery}
+\label{fig:strip-image-showing-perfect-hit}
+\end{figure}
+
+%
+% Discussion of Winder Results
+%
+\subsection{Winder Data Results}
+
+The first results are against the \cite{IEEEhowto:Winder} data set. The \cite{IEEEhowto:Winder} data set is a
+relatively clean set of images without a lot of challenging artifacts found in
+the UW-III images.
 
 The overall performance of RAST and Voronoi is shown in the histograms in
-\ref{fig:winder-fullpage-rast} and \ref{fig:winder-fullpage-vor}. The figures
-show the performance of the RAST and Voronoi on the full pages in the Winder
+Figure~\ref{fig:winder-fullpage-rast} and \ref{fig:winder-fullpage-vor}. The figures
+show the performance of RAST and Voronoi on the full pages in the Winder
 data set. The RAST results are slightly better than the Voronoi. The Winder
 data set pages are well formed along Manhattan layout. The RAST algorithm
 excels at primarily vertical/horizontal layouts which might explain the better
@@ -634,24 +699,26 @@ RAST results.
 %  All Winder Full Page Images
 \begin{figure}[winder-fullpage-rast]
 \includegraphics[width=6.0cm]{winder_fullpage_rast.eps}
-\caption{winder full page rast histogram}
+\caption{Winder full page RAST histogram}
 \label{fig:winder-fullpage-rast}
 \end{figure}
 
 \begin{figure}[winder-fullpage-vor]
 \includegraphics[width=6.0cm]{winder_fullpage_vor.eps}
-\caption{winder full page voronoi histogram}
+\caption{Winder full page voronoi histogram}
 \label{fig:winder-fullpage-vor}
 \end{figure}
 
-Directly comparing the RAST vs Voronoi on the winder data set is shown in
+Directly comparing RAST vs Voronoi on the winder data set is shown in
 Figure~\ref{fig:winder-class-rast-vs-vor}. In this chart, the average
 performance of each class in the winder data set over both RAST and Voronoi.
-RAST has the advantage in all cases except the Magazine. 
+RAST has the advantage in all cases except the Magazine. The Magazine images
+contain text flowing around images. Voronoi would be better at handling the
+freer flowing format than the block-oriented RAST.
 
 \begin{figure}[winder-class-rast-vs-vor]
 \includegraphics[width=6.0cm]{winder_class_rast_vs_vor.eps}
-\caption{winder full page classes RAST vs Voronoi}
+\caption{Winder full page classes RAST vs Voronoi}
 \label{fig:winder-class-rast-vs-vor}
 \end{figure}
 
@@ -679,8 +746,8 @@ better than Voronoi on the Winder data set strip images.
 
 We now more closely examine the behavior of RAST on the winder 300 strips.
 \ref{fig:winder-300-double-2col300} shows a double column, all
-text page from \cite{IEEEhowto:Winder} data set. The traversal of the RAST
-segmentation down the page is shown in the jagged lines. The mean of the RAST
+text page from \cite{IEEEhowto:Winder} data set. The traversal of RAST
+segmentation down the page is shown in the jagged lines. The mean of RAST
 results down the page is 0.78 while the full page metric is 1.0.  The 0.78
 result is quite useful with many 1.0 hits. The zeroes at the bottom of the
 image (right side of the graph) are the bottom white space of the page. (No
@@ -706,7 +773,10 @@ graphics location) and the bottom of the page (whitespace).
 \end{figure}
 
 Figure~\ref{fig:winder-300-double-pic-sci-2col300} shows a the results for a
-complicated page image. The top half of the page is a 
+complicated page image. The top half of the page is a block diagram containing
+lines, squares, and enclosed text. The lack of data along the top of the page
+(left side of the graph) is indicative of the page segmentation algorithms to
+find text.
 
 \begin{figure}[winder-300-double-pic-sci-2col300]
 \includegraphics[width=6.0cm]{winder_full_rast_double_sci_2col300_3.eps}
@@ -715,54 +785,92 @@ complicated page image. The top half of the page is a
 \end{figure}
 
 
-The [winder] data set is a relatively clean set of images. The results for
+%
+% Discussion of UW-III Results
+%
+\subsection{UW-III Data Results}
+
+The \cite{IEEEhowto:Winder} data set is a relatively clean set of images. The results for
 those images is quite good. The UW-III data set is a much more challenging set
 of images. Many of the images contain strong vertical black lines that result
 from scanning a book (the edges of the pages are caught as shadows). 
 
-Figure N is a histogram showing the RAST results of all 1600 UW-III images.
-Note there were several zero results. Many of the UW-III images had strong
-black vertical artifacts indicative of book scanning (page edges). Neither the
-RAST nor the Voronoi page segmentation programs attempted to compensate for
-such artifacts. Filtering out the failures (further future work will require
-better preprocessing on those images to compensate for such artifacts). 
+Figure~\ref{fig:uwiii-fullpage-rast} is a histogram showing the RAST results of
+all 1600 UW-III images.  Figure~\ref{fig:uwiii-fullpage-vor} shows the Voronoi
+full page results. Note there were several zero results. Many of the UW-III
+images had strong black vertical artifacts indicative of book scanning (page
+edges). Neither RAST nor Voronoi page segmentation programs
+attempted to compensate for such artifacts. Filtering out the failures in
+further future work will require better preprocessing on those images to
+compensate for such artifacts. 
 
-Figures (Histograms):
-	All full page RAST
-	All full page Voronoi
-	Selected pages RAST (typical consumer pages)
-	Selected pages Voronoi
+Figure~\ref{fig:uwiii-fullpage-rast} and Figure~\ref{fig:uwiii-fullpage-vor}
+show RAST and Voronoi performance of the 300 row strips in the UW-III
+dataset. There are again a large number of zero results. 
 
-	All Amy Winder RAST
-	All Amy Winder Voronoi
-
-	Full page RAST
-	Full page Voronoi
-
+% UW-III Full Page 
 \begin{figure}[uwiii-fullpage-rast]
-\includegraphics[width=6.0cm]{uwiii_full_page}
+\includegraphics[width=6.0cm]{uwiii_fullpage_rast}
 \caption{UW-III Full Page RAST}
 \label{fig:uwiii-fullpage-rast}
 \end{figure}
 
-\begin{figure}[300_uwiii-rast]
-\includegraphics[width=6.0cm]{300_uwiii_rast}
+\begin{figure}[uwiii-fullpage-vor]
+\includegraphics[width=6.0cm]{uwiii_fullpage_vor}
+\caption{UW-III Full Page Voronoi}
+\label{fig:uwiii-fullpage-vor}
+\end{figure}
+
+% UW-III Full Page with Zeros Removed
+%\begin{figure}[uwiii-fullpage-rast-nonzero]
+%\includegraphics[width=6.0cm]{uwiii_fullpage_rast_nonzero}
+%\caption{UW-III Full Page RAST with Zeros Removed}
+%\label{fig:uwiii-fullpage-rast-nonzero}
+%\end{figure}
+%
+%\begin{figure}[uwiii-fullpage-vor-nonzero]
+%\includegraphics[width=6.0cm]{uwiii_fullpage_vor_nonzero}
+%\caption{UW-III Full Page Voronoi with Zeros Removed}
+%\label{fig:uwiii-fullpage-vor-nonzero}
+%\end{figure}
+
+% UW-III 300 Strip
+\begin{figure}[300-uwiii-rast]
+\includegraphics[width=6.0cm]{uwiii_300_rast}
 \caption{UW-III 300 Row Strip RAST}
 \label{fig:300-uwiii-rast}
 \end{figure}
 
-\begin{figure}[300_uwiii-vor]
-\includegraphics[width=6.0cm]{300_uwiii_vor}
+\begin{figure}[300-uwiii-vor]
+\includegraphics[width=6.0cm]{uwiii_300_vor}
 \caption{UW-III 300 Row Strip Voronoi}
 \label{fig:300-uwiii-vor}
 \end{figure}
 
+% UW-III 300 by class
+\begin{figure}[uwiii-rast-vs-vor-fullpage]
+\includegraphics[width=6.0cm]{uwiii_class_rast_vs_vor_fullpage.eps}
+\caption{UW-III Fullpage RAST vs Voronoi by Class}
+\label{fig:uwiii-rast-vs-vor-fullpage}
+\end{figure}
+\begin{figure}[uwiii-class-rast-vs-vor-300]
+\includegraphics[width=6.0cm]{uwiii_class_rast_vs_vor_300.eps}
+\caption{UW-III 300 RAST vs Voronoi by Class}
+\label{fig:uwiii-class-rast-vs-vor-300}
+\end{figure}
 
-The results are encouraging. The segmentation algorithms performed better on
-the image strips that the full page. There were several 1.0 (perfect match)
-image strip results. A perfect match would usually occur with pages with
-little page edge noise and clearly aligned blocks of text.  
-PICTURE OF STRIP SHOWING EXAMPLE
+% UW-III 300 Strip with Zeros Removed
+%\begin{figure}[300_uwiii-rast]
+%\includegraphics[width=6.0cm]{uwiii_300_rast_nonzero}
+%\caption{UW-III 300 Row Strip RAST with Zeros Removed}
+%\label{fig:300-uwiii-rast-nonzero}
+%\end{figure}
+%
+%\begin{figure}[300_uwiii-vor]
+%\includegraphics[width=6.0cm]{uwiii_300_vor_nonzero}
+%\caption{UW-III 300 Row Strip Voronoi with Zeros Removed}
+%\label{fig:300-uwiii-vor-nonzero}
+%\end{figure}
 
 
 % An example of a floating figure using the graphicx package.
@@ -850,9 +958,22 @@ PICTURE OF STRIP SHOWING EXAMPLE
 
 
 \section{Conclusion}
-The conclusion goes here.
 
+In this paper, we studied the relative performance of the RAST and VOronoi page
+segmentation algorithms when the images were constrained to 300 or 600 row
+strips. The tests were run against the UW-III LINEWORD images and an additional
+image test set from \cite{IEEEhowto:Winder}. The fullpage images were divided
+into smaller images using a sliding window to partially mimic a desktop
+scanner.
 
+THe RAST results were almost uniformly better than the Voronoi. THe RAST 600
+stripsize had little improvement over the 300 stripsize even in the cases where
+the full image performed much better than the strip. The one exception was the
+highly mixed layout from the Magazine images in \cite{IEEEhowto:Winder}.
+
+Overall, RAST with a 300 stripsize performed well enough that the algorithm is
+a good candidate for for study. The eventual goal would be to implement RAST in
+a hardware circuit (ASIC) for real-time performance in an MFP.
 
 
 % conference papers do not normally have an appendix
@@ -900,14 +1021,11 @@ Amy~Winder Thesis. 2008.
 B.Gatos. ICDAR2007 Handwriting Segmentation Contest.
 
 \bibitem{IEEEhowto:Philips}
-Ihsin Philips. Emperical Performance Evaluation of Graphics Reconition Systems. 1999. 
+Ihsin Philips. Emperical Performance Evaluation of Graphics Recognition Systems. 1999. 
 
 \end{thebibliography}
 
 
-
-
 % that's all folks
 \end{document}
-
 
