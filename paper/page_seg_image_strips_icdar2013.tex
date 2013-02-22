@@ -578,6 +578,61 @@ RAST algorithm was not included in the \cite{shafait2006performance} comparison
 but was judged to have high quality in \cite{winder2010extending} and is one of
 the core algorithms in OCRopus \cite{breuel2008ocropus}. 
 
+% ===================================
+%  Describing the Performance Metrics
+% ===================================
+
+\section{Performance Metrics}
+%``To quantitatively evaluate algorithms, a meaningful and computable metric is
+%essential.'' \cite{phillips1999empirical}
+The most referenced paper studying multiple page segmentation is
+\cite{shafait2006performance} which used the performance metric as defined in
+\cite{phillips1999empirical}. Another method used in other works the Page Segmentation
+Evaluation Toolkit (PSET) \cite{mao2000pset,mao2002software}.
+
+The text area matching algorithm of \cite{phillips1999empirical} calculates a
+text area matching score by first calculating the intersection of the ground
+truth bounding box and the result bounding box. The intersection is
+then divided by the larger of the two areas. A set of metrics on how well the
+zones were discovered are next calculated.  The one-to-many and many-to-one
+matches are calculated both from the perspective of the ground truth and the
+detected areas. 
+
+For example, a single ground truth bounding box could have been split into
+multiple boxes in the result. That would be a one-to-many error. Multiple
+ground truth boxes combined into a single box would be a many-to-one error.
+
+The metric chosen in this paper is based on finding only text/non-text zones.
+The UW-III ZONEBOX files were particularly well adapted to this simple
+metric. The \cite{winder2010extending} test image set was divided into bounding
+boxes for text and non-text zones.  The metric itself was calculated using the
+zone comparison program written as part of \cite{winder2010extending}. 
+
+%The Page Segmentation Evaluation Toolkit (PSET) \cite{mao2000pset} was used to analyzed XYCUT,
+%DOCSTRUM, and VORONOI algorithms as well as two commercial systems from
+%Caere Corporation and ScanSoft Corporation. \cite{mao2003document} not only
+%cataloged many segmentation algorithms but their performance as well.
+
+The weights used in the zone comparison program are shown in Table
+\ref{table:table-weights}. The correct one-to-one matches are weighted more
+heavily than the one-to-many and the many-to-one matches, i.e., the correct
+matches are weighed more heavily than the wrong matches.
+
+\begin{table}
+\begin{center}
+\caption{Weights used in the zone comparison program}
+\label{table:table-weights}
+\label{table-weights}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+  w1 & w2 & w3 & w4 & w5 & w6 \\
+ \hline
+  1.0  & 0.75 & 0.75 & 1.0 & 0.75 & 0.75 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 % ========================================
 %  Describing the Method of the Experiments
 % ========================================
@@ -750,63 +805,6 @@ was run against the sliced ground truth file and the experimental results.
       & photocopies  & \\ 
     \hline
 \end{tabular}
-\end{table}
-
-% ===================================
-%  Describing the Performance Metrics
-% ===================================
-
-\section{Performance Metrics}
-``To quantitatively evaluate algorithms, a meaningful and computable metric is
-essential.'' \cite{phillips1999empirical}
-The most referenced paper studying multiple page segmentation is \cite{shafait2006performance} 
-which used the performance metric as defined in
-\cite{phillips1999empirical}. 
-
-The text area matching algorithm of \cite{phillips1999empirical} calculates a
-text area matching score by first calculating the intersection of the ground
-truth bounding box and the result bounding box. The intersection is
-then divided by the larger of the two areas. A set of metrics on how well the
-zones were discovered are next calculated.  The one-to-many and many-to-one
-matches are calculated both from the perspective of the ground truth and the
-detected areas. 
-
-For example, a single ground truth bounding box could have been split into
-multiple boxes in the result. That would be a one-to-many error. Multiple
-ground truth boxes combined into a single box would be a many-to-one error.
-
-The metric chosen in this paper is based on finding only text/non-text zones.
-The UW-III ZONEBOX files were particularly well adapted to this simple
-metric. The \cite{winder2010extending} test image set was divided into bounding boxes for text
-and non-text zones. 
-
-The metric itself was calculated using the zone comparison program written as
-part of \cite{winder2010extending}. 
-The Page Segmentation Evaluation Toolkit (PSET) \cite{mao2000pset} was used to analyzed XYCUT,
-DOCSTRUM, and VORONOI algorithms as well as two commercial systems from
-Caere Corporation and ScanSoft Corporation. \cite{mao2003document} not only
-cataloged many segmentation algorithms but their performance as well.
-
-
-The weights used in the zone comparison program are shown in Table
-\ref{table:table-weights}. The
-correct one-to-one matches are weighted more heavily than the one-to-many and
-the many-to-one matches. The good matches are weighed more heavily than the
-wrong matches.
-
-\begin{table}
-\begin{center}
-\caption{Weights used in the zone comparison program}
-\label{table:table-weights}
-\label{table-weights}
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-  w1 & w2 & w3 & w4 & w5 & w6 \\
- \hline
-  1.0  & 0.75 & 0.75 & 1.0 & 0.75 & 0.75 \\
-\hline
-\end{tabular}
-\end{center}
 \end{table}
 
 % ====================================
