@@ -502,7 +502,6 @@ experiment is to find a page segmentation algorithm that best scales downward
 to image strips. The best algorithm would be the topic of further study toward
 tuning the algorithm for page segmentation with image strips.
 
-
 % ========================================
 %  Previous Work
 % ========================================
@@ -558,11 +557,9 @@ an area Voronoi diagram of island regions.
 Baird \cite{baird2006versatile} has a novel and interesting approach to page
 segmentation. Each pixel is classified by around 100 features. Thousands of
 images are used to build a training set. K-Nearest Neighbors is used
-to classify each pixel in a test document. As one of the assumptions
-is, as the paper admits, ``near-infinite space" ``when main memory will
-be orders of magnetite larger and faster than today," this algorithm
-would be inappropriate for the resource constrained environment
-targeted in this paper.
+to classify each pixel in a test document. As one of the admitted assumptions
+in the paper is enormous computing resources, this algorithm would be
+inappropriate for the resource constraints targeted in this paper.
 
 RAST is not part of the performance comparison in \cite{shafait2006performance,mao2000empirical}. 
 RAST is a bottom-up algorithm that starts with bounding boxes of connected
@@ -577,6 +574,10 @@ Voronoi was judged to be of high quality in \cite{shafait2006performance}. The
 RAST algorithm was not included in the \cite{shafait2006performance} comparison
 but was judged to have high quality in \cite{winder2010extending} and is one of
 the core algorithms in OCRopus \cite{breuel2008ocropus}. 
+
+In this paper Voronoi and RAST are compared for their potential for use in a
+memory constrained environment. A third algorithm will be included before the
+final publication date.
 
 % ===================================
 %  Describing the Performance Metrics
@@ -640,8 +641,8 @@ matches are weighed more heavily than the wrong matches.
 \section{Method}
 
 To quantitatively compare page segmentation algorithms, a simplified version of
-the text area comparison algorithm from \cite{phillips1999empirical} was used.
-The metric takes definitions of bounding boxes of zones, measurements such as
+the text area comparison algorithm from \cite{phillips1999empirical} is used.
+Metrics of bounding boxes of zones, measurements such as
 horizontally/vertically merged lines, false detections, etc. are combined to
 form a Text-line Accuracy.  The zone comparison program is based on the
 metric chosen for the ICDAR 2007 Handwriting Segmentation Contest and is
@@ -651,24 +652,33 @@ described in \cite{antonacopoulos2007page}.
 %and RAST on page and strips across two data sets containing several categories
 %for page images.
 
-Two page segmentation algorithms, Voronoi and RAST, are compared in this paper.
-The algorithms are based on the OCRopus v0.4.3  \cite{breuel2008ocropus}, but
-include the enhancements reported in \cite{winder2011icdar}. This improved
-their performance by @@insert quantitative or qualitiative info@@.  To be able
-to compare their outputs with the ground truth, \cite{breuel2008ocropus} was
-expanded to output the zone areas in XML.
+%Two page segmentation algorithms, Voronoi and RAST, are compared in this paper.
+%The algorithms are based on the OCRopus v0.4.3  \cite{breuel2008ocropus}, but
+%include the enhancements reported in \cite{winder2011icdar}. This improved
+%their performance by @@insert quantitative or qualitiative info@@.  To be able
+%to compare their outputs with the ground truth, \cite{breuel2008ocropus} was
+%expanded to output the zone areas in XML.
 
 In \cite{winder2010extending} the OCRopus v0.4.3 was extended with
-additional page segmentation capabilities. The Voronoi algorithm was extended.
-Also, XYCut and RAST were extended to add XML zone output. The XML zone output
-allowed measurement of the improvement in page segmentation.  This study uses
-the XML output from \cite{winder2010extending} from the RAST and Voronoi page
-segmentation algorithms. 
+additional page segmentation capabilities. The RAST algorithm was improved by
+classifying and merging graphics bounding boxes and handling text boxes
+overlapping graphics.  The Voronoi algorithm in OCRopus did not support zone
+classification and that work was completed by Winder.
+
+The Winder work improved average RAST performance across all image classes by
+25\%. The original Voronoi implementation did not include zone classification
+but the overall Voronoi performance was not as good as RAST. Where RAST would
+segment at 100\%, Voronoi would get around 80\%.
+
+%XYCut and RAST were extended to add XML zone output. The XML zone output
+%allowed measurement of the improvement in page segmentation.  This study uses
+%the XML output from \cite{winder2010extending} from the RAST and Voronoi page
+%segmentation programs. 
 
 The RAST and Voronoi page segmentation programs read a PNG file and output a
 segmented PNG image and an XML zone file. The metric comparison is the same as
 used in \cite{winder2010extending} which is the same as used in
-\cite{mao2000pset}\cite{antonacopoulos2007page}. The metric comparison
+\cite{phillips1999empirical}\cite{antonacopoulos2007page}. The metric comparison
 reads a ground truth XML zone file and an output XML file. A metric with values
 in the range $[0, 1.0]$ is output where 0 indicates no match and 1.0 indicates
 full match. 
@@ -683,18 +693,6 @@ and the categories of page images they contain.  They list the image classes
 and an abbreviation (used in the figures) and a short description of the
 classes is also included.
 
-All images tested were 300 dpi.  The pages were divided into strips of 1" or 2" (300 rows and 600 rows),
-a small enough amount to fit within the constrained memory with 
-a window that slides down the page image, 10 rows at a time, for the 300
-row strips and 20 rows at a time for the 600 row strips.  
-The sliding window simulates the scanned image in memory. As new rows arrive, the
-oldest rows are ejected. 
-Only a fixed size strip is in memory at a time. Each
-LINEWORD image was split into 330 PNG files of 300 rows each and 165 PNG files
-of 600 rows each.  Given the 1600 UW-III LINEWORD images, there were over
-520,000 files computed for the 300 row strips and 260,000 files for the 600 row
-strips.
-
 The \cite{winder2010extending} consists of 91 overall images of several
 different clases. Most of the images are scans of pages designed with a
 specific function. For example, the "Single Column" pages are a full page of
@@ -703,6 +701,14 @@ are not generated pages. The "Magazine" pages are scans from actual magazines
 and contain mixed layout text with halftoned graphics. The "Double Column
 Pictures Scientific" are scans of scholarly papers.  As they are scans of
 individual pieces of paper, the document image quality is quite good.
+
+All images tested were 300 dpi.  The pages were divided into strips of 1" or 2"
+(300 rows and 600 rows). A window slides down the page image, 10 rows at a time
+(for 300) or 20 rows (for 600).  The sliding window simulates the scanned image
+in memory. As new rows arrive, the oldest rows are ejected.  Each LINEWORD
+image was split into 330 PNG files of 300 rows each and 165 PNG files of 600
+rows each.  Given the 1600 UW-III LINEWORD images, there were over 520,000
+files computed for the 300 row strips and 260,000 files for the 600 row strips.
 
 %\begin{tabular}
 %\begin{tabular}{|r|l|}
@@ -717,22 +723,25 @@ individual pieces of paper, the document image quality is quite good.
 %\label{table:image-size}
 %\end{tabular}
 
-
 The UW-III images contain ZONEBOX “.box” files indicating ground truth text
-areas of the full page images. In order to compare the segmentation results from the strip images against a 
-ground truth for pages, the ZONEBOX files were also divided into strips. A Python script
-parsed the .box files into a set of four point rectangles. A full page width
-strip rectangle of 300 or 600 rows was then intersected against all the
+areas of the full page images. The Winder images are accompanied by XML files
+of ground truth zoneboxes of both text and non-text. The UW-III .box files only
+contained text areas.
+
+In order to compare the segmentation results from the strip images against a
+ground truth for pages, the ground truth files are divided into strips.  A full
+page width strip rectangle of 300 or 600 rows was intersected with the
 zoneboxes. The intersection of the two rectangles became new ground truth
-zoneboxes. The page width strip was repeatedly slid 10 rows down then the
+zoneboxes. The page width strip was repeatedly slid 10 or 20 rows down then the
 intersection was tested again. The final output of each “slide” is a .XML file
 indicating the zoneboxes in each window.
 
-The RAST and Voronoi page segmentation programs were also run against the full page
-to create a baseline of behavior of the two algorithms.  
-The RAST and Voronoi page segmentation programs were run against the new strip
-image. The output XML was saved to a separate file. The zone comparison program
-was run against the sliced ground truth file and the experimental results. 
+The \cite{winder2010extending} RAST and Voronoi page segmentation programs were
+run against the full page to create a behavior baseline.  The RAST and Voronoi
+page segmentation programs were then run against the new strip images. The output XML
+was saved to a separate file. The \cite{winder2010extending} zone comparison
+program was run against the sliced ground truth file and the experimental
+results. 
 
 %\section{RAST and Voronoi with OCRopus}
 %While the algorithms used in this paper were RAST and Voronoi, the code that
