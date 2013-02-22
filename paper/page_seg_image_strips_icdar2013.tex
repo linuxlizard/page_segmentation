@@ -362,7 +362,7 @@
 \author{\IEEEauthorblockN{David Poole}
 \IEEEauthorblockA{Marvell Semiconductor Inc.
 \\
-Boise, ID  \\
+Boise, ID  USA \\
 Email: dpoole@marvell.com}
 \and
 \IEEEauthorblockN{Dr. Elisa Barney-Smith}
@@ -456,9 +456,10 @@ performance in an image strip page segmentation.
 \section{Introduction}
 % no \IEEEPARstart
 
-Page segmentation is useful for dividing a scanned image into zones. Different
-image zones can be optimized differently depending on their content. This paper
-focuses only on text and non-text zones. 
+Page segmentation is the process of dividing a scanned document image into
+zones of different content such as text paragraph, business graphic, halftoned
+image, etcetera. Different image zones can be optimized differently depending
+on their content. This paper focuses only on text and non-text zones. 
 
 Even in a resource-constrained environment, image quality is still a
 requirement. Being able to differentiate a text region from a graphics region
@@ -488,11 +489,12 @@ tuning the algorithm for page segmentation with image strips.
 
 Exploring how strip based page segmentation would have application not only in
 paper scanners but in other areas where a full page image could be too large to
-store in available memory. With the proliferation of mobile devices (phones,
-tablets, etcetera), camera-based imaging has become a topic of interest.
-However, mobile devices are memory constrained in much the same way as desktop
-scanner/copier products. Rather than storing an entire image in active memory,
-small strips could be extracted and segmented as described in this paper.
+store in available memory. A micro-fiche scanner comes to mind. Further, with
+the proliferation of mobile devices (phones, tablets, etcetera), camera-based
+imaging has become a topic of interest.  However, mobile devices are memory
+constrained in much the same way as desktop scanner/copier products. Rather
+than storing an entire image in active memory, small strips could be extracted
+and segmented as described in this paper.
 
 
 %\subsection{Subsection Heading Here}
@@ -514,26 +516,67 @@ Caere Corporation and ScanSoft Corporation. [Document structure analysis
 algorithms] not only cataloged many segmentation algorithms but their
 performance as well.
 
-\begin{bold}
-NEED MUCH MORE HERE. Add description of the six aforementioned algorithms and a
-description of RAST. Categorize the algorithms into top-down and bottom-up as
-per [PSET].
-\end{bold}
+Page segmentation algorithms are usually divided into top-down and bottom-up
+categories [Performance Compare][MAO] with some algorithms considered a hybrid
+mix of the two. A top-down algorithm examines the entire image, finding
+structure in the image, then drilling into deeper detail.  A bottom-up
+algorithm examines the image at the pixel level then builds a larger picture of
+the document from smaller components. [WHITESPACE ANALYSIS] contains a good
+description of top-down vs bottom-up.
+
+X-Y Cut is a top-down algorithm that recursively breaks an image
+into rectangular blocks using horizontal and vertical projection histograms.
+Rectangles are recursively split based on valleys in the histogram. 
+
+Docstrum is a bottom-up algorithm that uses the distance between clusters of
+connected components. The k-nearest-neighbors of the components are measured
+and the docstrum is the plot of all nearest neighbor pairs on a page.
+[DOCSTRUM]
+
+Smearing is a bottom-up algorithm that transforms the image at the pixel level
+by setting 0 pixels to 1 based on their neighbors' values. Black areas are
+connected together. The algorithm is run along rows then along columns and the
+two images combined.
+
+Whitespace analysis is a top-down algorithm that starts with bounding boxes of
+black connected components. Rectangles of whitespace are built around the black
+components such that no rectangle intersects with a black component. The
+resulting rectangles are repeatedly combined to form a cover. The bounding box
+of the uncovered region is treated as a text segment. 
+
+Voronoi as a page segementation algorithm is a bottom-up algorithm. The
+segmentation starts with centroids of connected components. A point voronoi
+diagram is built around those points. Extraneous edges are filtered out leaving
+an area Voronoi diagram of island regions.
+
+Constrained Text Line Detection is a top down algorithm that works by first
+finding whitespace rectangles that represent gutters. The gutters become
+obstacles in computing the bounding boxes of text lines.
+
+RAST is not part of the [Performance Compare][Mao] papers. Rather, RAST was
+included because this paper is heavily based on the work in
+\cite{IEEEhowto:Winder} and OCRopus. RAST is a bottom-up algorithm that starts
+with bounding boxes of connected components. Statistics on the boxes are used
+to decide if the box contains a character. Next, the whitespace cover is
+computed, similar to [CONSTRAINED TEXT LINE]. As both RAST and [CONSTRAINED]
+are by the same author, RAST builds upon [CONSTRAINED]. The text lines are
+found based on contiguous character boxes.
+
 
 %
 %  Describing the Method of the Experiments
 %
 \section{Method}
 This study leveraged from working previously performed by Amy Winder
-[footnote]. In \cite{IEEEhowto:Winder}, the OCRopus v0.4.3 was extended with additional page
-segmentation capabilities. The Voronoi algorithm was extended. Also, XYCut and
-RAST were extended to add XML zone output. The XML zone output allowed 
-measurement of the improvement in page segmentation.
+[footnote]. In \cite{IEEEhowto:Winder}, the OCRopus v0.4.3 was extended with
+additional page segmentation capabilities. The Voronoi algorithm was extended.
+Also, XYCut and RAST were extended to add XML zone output. The XML zone output
+allowed measurement of the improvement in page segmentation.
 
-This study uses the XML output from \cite{IEEEhowto:Winder} from the RAST and Voronoi page
-segmentation algorithms. Voronoi was judged to be of high quality in [“six
-algorithms for page segmentation”]. The RAST algorithm was not part of the
-[“six algorithms”] paper. 
+This study uses the XML output from \cite{IEEEhowto:Winder} from the RAST and
+Voronoi page segmentation algorithms. Voronoi was judged to be of high quality
+in [“six algorithms for page segmentation”]. The RAST algorithm was not part of
+the [“six algorithms”] paper. 
 
 The RAST and Voronoi page segmentation programs read a PNG file and output a
 segmented PNG image and an XML zone file. The metric comparison is the same as
@@ -597,29 +640,36 @@ to create a baseline of behavior of the two algorithms.
 %
 %\subsection{Voronoi}
 
-\begin{small}
+Table~\ref{table:Winder Image Classes} lists the image classes in the Winder
+dataset. An abbreviation (used in the figures) and a short description is also
+included. Table~\ref{table:UW-III Image Classes} is from the UW-III User's
+Manual and shows the UW-III image classes.
+
 \begin{tabular}{|l|l|l|}
+%\caption{Winder Image Classes}
 \hline
-{\it \bf Image Class} & {\it \bf Abbrev.} & {\it \bf Description} \\ \hline
+\textit{\textbf{Image Class}} & \textit{\textbf{Abbrev.}} & \textit{\textbf{Description}} \\ \hline
     Single Column & SC & Single column of only text \\ \hline
     Single Column & SCP & Single column of \\
     with Pictures &     & text with picture intermixed \\ \hline
     Single Column & SCS & Single column text \\
-    with Scientific Pictures &     & with scholarly graphic   \\ \hline
+     with Scientific &  & with technical graphic   \\
+     Pictures &  & \\ \hline
     Double Column & DC & Two columns of only text \\  \hline
     Double Column & DCP & Two columns of text with \\ 
     with Pictures &     & picture intermixed \\  \hline
     Double Column  & DCS & Two columns of text \\
-    with Scientific Pictures &     &  with scholarly graphic  \\ \hline
+    with Scientific &     &  with technical graphic  \\ 
+     Pictures &  & \\ \hline
     Magazine & M & Scan of magazine page; \\
              &   & Graphics with text flowing \\
              &   & around the images \\
 \hline
-\label{table:Winder Image Classes}
 \end{tabular}
-\end{small}
+\label{table:Winder Image Classes}
 
 \begin{tabular}{|l|l|}
+%\caption{UW-III Image Classes}
 \hline
     A, C, D,   & Scans of first generation  \\
     E, H, I,   & English journal photocopies \\ 
@@ -631,8 +681,8 @@ to create a baseline of behavior of the two algorithms.
       & and 1st and 2nd generation English journal \\
       & photocopies \\ \hline
 \hline
-\label{table:UW-III Image Classes}
 \end{tabular}
+\label{table:UW-III Image Classes}
 
 %
 %  Describing the Performance Metrics
@@ -670,7 +720,8 @@ For example, a single ground truth bounding box could have been split into
 multiple boxes in the result. That would be a one-to-many error. Multiple
 ground truth boxes combined into a single box would be a many-to-one error.
 
-The weights used in the zone comparison program are shown in Table ref. The
+The weights used in the zone comparison program are shown in Table
+\ref{table:table-weights}. The
 correct one-to-one matches are weighted more heavily than the one-to-many and
 the many-to-one matches. The good matches are weighed more heavily than the
 wrong matches.
@@ -685,17 +736,10 @@ wrong matches.
     w5 & 0.75 \\
     w6 & 0.75 \\
 \hline
-\label{table:table-weights}
 \end{tabular}
+\label{table:table-weights}
 
 \section{Results}
-
-% All 300,600,full rast,vor winder,uwiii on one graph
-\begin{figure}[all-qualitative]
-\includegraphics[width=6.0cm]{all_qual}
-\caption{UW-III and Winder Segmentation Results}
-\label{fig:all-qualitative}
-\end{figure}
 
 All images from both the Winder and the UW-III datasets with 
 the 300, 600 row strips, and the fullpage were run with both the RAST and
@@ -711,6 +755,13 @@ was very little additional improvement in going from a 300 row strip to a 600
 row strip which would indicate the smaller strip size (and corresponding lower
 memmory requirements) work well.
 
+% All 300,600,full rast,vor winder,uwiii on one graph
+\begin{figure}[all-qualitative]
+\includegraphics[width=6.0cm]{all_qual}
+\caption{UW-III and Winder Segmentation Results}
+\label{fig:all-qualitative}
+\end{figure}
+
 The UW-III results are more puzzling. The degradation of results from the
 strip images to the full page is understandable given the extra challenges in
 the UW-III dataset images. When the image was broken up into horizontal strips,
@@ -719,15 +770,88 @@ show an increase in performance from 300 to 600 then a sharp drop. That result
 needs further exploration.
 
 Overall, the results are encouraging. The segmentation algorithms performed
-better on the image strips that the full page. There were several 1.0 (perfect
+better on the image strips than the full page. There were several 1.0 (perfect
 match) image strip results. A perfect match would usually occur with
-pages with little page edge noise and clearly aligned blocks of text.  
+pages with little page edge noise and clearly aligned blocks of text. Because
+the 300 and 600 behaved so closely, all the following results only examine the
+300 stripsize. 
 
 \begin{figure}[strip-image-showing-perfect-hit]
 \includegraphics[width=6.0cm]{A00AZONE_300_010_0360_zones.png}
 \caption{Strip Image with Perfect Zone Discovery}
 \label{fig:strip-image-showing-perfect-hit}
 \end{figure}
+
+Figure~\ref{fig:winder-class-rast-vs-vor} shows all results of the Winder
+tests. Figure~\ref{fig:uwiii-class-rast-vs-vor} shows all results of the
+UW-III tests. Shown are the fullpage RAST and Voronoi alongside the results
+for stripsize 300. In the Winder results the fullpage RAST performs the best in
+all cases except Magazine (M). The encouraging result is the RAST 300 is in
+close second to the fullpage on several classes. The Multi-Column layout (MC)
+result is almost identical. Given the restricted size of the segmentation area,
+the Rast 300 is performing quite well. The UW-III results paint a slightly
+different view. On several of the classes, the Voronoi performs better than the
+RAST. However, the Rast 300 performs as good as or better than all other
+contenders in ten of the twelve tests!
+
+\subsection{Zeros}
+
+The metric used to calculate strip match quality would yield a 1.0 on a perfect
+match--the ground truth and the result segmentation matched. However, there
+were several reasons a zero metric would arise. A zero could result from an
+empty strip--there is nothing to match and the ground truth also would be
+empty. The resulting equation would be 0/0 giving NAN. Because the original
+metric was not designed to handle empty images (why would the test set contain
+an empty page?), the metric would give a zero on both an empty image/ground
+truth and a miss (no matching zones). Future work would include matching empty
+ground truth with an empty segmented strip.
+
+
+%
+% Table of Zero results; created with numcrunch.py
+%
+
+    \begin{tabular}{| l | l | l | l | }
+    \hline
+    Name    &   Total Metrics & Zeros & \% Non Zero \\
+    \hline 
+    winder rast 300 & 50283 & 5159 & 0.81 \\
+    \hline
+
+    winder rast 600 & 25831 & 2253 & 0.84 \\
+    \hline
+
+    winder rast fullpage & 179 & 3 & 0.97 \\
+    \hline
+
+    winder vor 300 & 42143 & 13299 & 0.52 \\
+    \hline
+
+    winder vor 600 & 22802 & 5282 & 0.62 \\
+    \hline
+
+    winder vor fullpage & 181 & 1 & 0.99 \\
+    \hline
+
+    uwiii rast 300 & 867596 & 189060 & 0.64 \\
+    \hline
+
+    uwiii rast 600 & 444353 & 84103 & 0.68 \\
+    \hline
+
+    uwiii rast fullpage & 2939 & 511 & 0.70 \\
+    \hline
+
+    uwiii vor 300 & 765845 & 290811 & 0.45 \\
+    \hline
+
+    uwiii vor 600 & 408361 & 120095 & 0.55 \\
+    \hline
+
+    uwiii vor fullpage & 2565 & 885 & 0.49 \\
+    \hline
+
+    \end{tabular}
 
 %
 % Discussion of Winder Results
@@ -785,29 +909,29 @@ better than Voronoi on the Winder data set strip images.
 %  All Winder 300 Strip Images
 \begin{figure}[300-winder-rast]
 \includegraphics[width=6.0cm]{300_winder_rast.png}
-\caption{winder 300 strips RAST histogram}
+\caption{Winder 300 strips RAST histogram}
 \label{fig:300-winder-rast}
 \end{figure}
 \begin{figure}[300-winder-vor]
 \includegraphics[width=6.0cm]{300_winder_vor.png}
-\caption{winder 300 strips Voronoi histogram}
+\caption{Winder 300 strips Voronoi histogram}
 \label{fig:300-winder-vor}
 \end{figure}
 
-We now more closely examine the behavior of RAST on the winder 300 strips.
-\ref{fig:winder-300-double-2col300} shows a double column, all
-text page from \cite{IEEEhowto:Winder} data set. The traversal of RAST
-segmentation down the page is shown in the jagged lines. The mean of RAST
-results down the page is 0.78 while the full page metric is 1.0.  The 0.78
-result is quite useful with many 1.0 hits. The zeroes at the bottom of the
-image (right side of the graph) are the bottom white space of the page. (No
-matches and no ground truth results in a zero.)
+%We now more closely examine the behavior of RAST on the Winder 300 strips.
+%\ref{fig:winder-300-double-2col300} shows a double column, all
+%text page from \cite{IEEEhowto:Winder} data set. The traversal of RAST
+%segmentation down the page is shown in the jagged lines. The mean of RAST
+%results down the page is 0.78 while the full page metric is 1.0.  The 0.78
+%result is quite useful with many 1.0 hits. The zeroes at the bottom of the
+%image (right side of the graph) are the bottom white space of the page. (No
+%matches and no ground truth results in a zero.)
 
-\begin{figure}[winder-300-double-2col300]
-\includegraphics[width=6.0cm]{winder_full_rast_double_2col300_1.png}
-\caption{Winder 300 Strips vs Full Page RAST Two Columns}
-\label{fig:winder-300-double-2col300}
-\end{figure}
+%\begin{figure}[winder-300-double-2col300]
+%\includegraphics[width=6.0cm]{winder_full_rast_double_2col300_1.png}
+%\caption{Winder 300 Strips vs Full Page RAST Two Columns}
+%\label{fig:winder-300-double-2col300}
+%\end{figure}
 
 Figure~\ref{fig:winder-300-double-pic-2col300} shows a more complicated page of
 two columns with included halftoned graphics. The overall RAST metric was 0.78
@@ -822,17 +946,17 @@ graphics location) and the bottom of the page (whitespace).
 \label{fig:winder-300-double-pic-2col300}
 \end{figure}
 
-Figure~\ref{fig:winder-300-double-pic-sci-2col300} shows a the results for a
-complicated page image. The top half of the page is a block diagram containing
-lines, squares, and enclosed text. The lack of data along the top of the page
-(left side of the graph) is indicative of the page segmentation algorithms to
-find text.
+%Figure~\ref{fig:winder-300-double-pic-sci-2col300} shows a the results for a
+%complicated page image. The top half of the page is a block diagram containing
+%lines, squares, and enclosed text. The lack of data along the top of the page
+%(left side of the graph) is indicative of the page segmentation algorithms to
+%find text.
 
-\begin{figure}[winder-300-double-pic-sci-2col300]
-\includegraphics[width=6.0cm]{winder_full_rast_double_sci_2col300_3.png}
-\caption{Winder 300 Strips vs Full Page RAST Two Columns Scientific Journal Paper}
-\label{fig:winder-300-double-pic-sci-2col300}
-\end{figure}
+%\begin{figure}[winder-300-double-pic-sci-2col300]
+%\includegraphics[width=6.0cm]{winder_full_rast_double_sci_2col300_3.png}
+%\caption{Winder 300 Strips vs Full Page RAST Two Columns Scientific Journal Paper}
+%\label{fig:winder-300-double-pic-sci-2col300}
+%\end{figure}
 
 
 %
@@ -845,38 +969,37 @@ those images is quite good. The UW-III data set is a much more challenging set
 of images. Many of the images contain strong vertical black lines that result
 from scanning a book (the edges of the pages are caught as shadows). 
 
-Figure~\ref{fig:uwiii-fullpage-rast} is a histogram showing the RAST fullpage results of
-all 1600 UW-III images.  Figure~\ref{fig:uwiii-fullpage-vor} shows the Voronoi
-fullpage results. Note there were several zero results. Many of the UW-III
-images had strong black vertical artifacts indicative of book scanning (page
-edges). Neither RAST nor Voronoi page segmentation programs
-attempted to compensate for such artifacts. Filtering out the failures in
-further future work will require better preprocessing on those images to
-compensate for such artifacts. Note RAST seems to perform better overall than
-Voronoi.
+Figure~\ref{fig:uwiii-fullpage-rast-nonzero} is a histogram showing the RAST fullpage results of
+all 1600 UW-III images.  Figure~\ref{fig:uwiii-fullpage-vor-nonzero} shows the Voronoi
+fullpage results. Note there were several zero results not shown. Many of the
+UW-III images had strong black vertical artifacts indicative of book scanning
+Voronoi seems to have the edge in the fullpage analysis likely due to the
+images' scanning artifacts.  (page edges). Neither RAST nor Voronoi page
+segmentation programs attempted to compensate for such artifacts. Filtering out
+the failures in further future work will require better preprocessing on those
+images to compensate for such artifacts. Note RAST seems to perform better
+overall than Voronoi.
 
-Figure~\ref{fig:uwiii-fullpage-rast-nonzero} and
-Figure~\ref{fig:uwiii-fullpage-vor-nonzero} show the nonzero components of the
-full page RAST and Voronoi histograms.  Voronoi seems to have the edge in the
-fullpage analysis likely due to the images' scanning artifacts.
-
-Figure~\ref{fig:uwiii-fullpage-rast} and Figure~\ref{fig:uwiii-fullpage-vor}
-show RAST and Voronoi performance of the 300 row strips in the UW-III
-dataset. There are again a large number of zero results. 
+% UW-III by class 
+\begin{figure}[uwiii-class-rast-vs-vor]
+\includegraphics[width=6.0cm]{uwiii_class_rast_vs_vor.png}
+\caption{UW-III Fullpage RAST vs Voronoi by Class}
+\label{fig:uwiii-class-rast-vs-vor}
+\end{figure}
 
 
 % UW-III Full Page 
-\begin{figure}[uwiii-fullpage-rast]
-\includegraphics[width=6.0cm]{uwiii_fullpage_rast}
-\caption{UW-III Full Page RAST}
-\label{fig:uwiii-fullpage-rast}
-\end{figure}
+%\begin{figure}[uwiii-fullpage-rast]
+%\includegraphics[width=6.0cm]{uwiii_fullpage_rast}
+%\caption{UW-III Full Page RAST}
+%\label{fig:uwiii-fullpage-rast}
+%\end{figure}
 
-\begin{figure}[uwiii-fullpage-vor]
-\includegraphics[width=6.0cm]{uwiii_fullpage_vor}
-\caption{UW-III Full Page Voronoi}
-\label{fig:uwiii-fullpage-vor}
-\end{figure}
+%\begin{figure}[uwiii-fullpage-vor]
+%\includegraphics[width=6.0cm]{uwiii_fullpage_vor}
+%\caption{UW-III Full Page Voronoi}
+%\label{fig:uwiii-fullpage-vor}
+%\end{figure}
 
 % UW-III Full Page with Zeros Removed
 \begin{figure}[uwiii-fullpage-rast-nonzero]
@@ -892,24 +1015,18 @@ dataset. There are again a large number of zero results.
 \end{figure}
 
 % UW-III 300 Strip
-\begin{figure}[300-uwiii-rast]
-\includegraphics[width=6.0cm]{uwiii_300_rast}
-\caption{UW-III 300 Row Strip RAST}
-\label{fig:300-uwiii-rast}
-\end{figure}
+%\begin{figure}[300-uwiii-rast]
+%\includegraphics[width=6.0cm]{uwiii_300_rast}
+%\caption{UW-III 300 Row Strip RAST}
+%\label{fig:300-uwiii-rast}
+%\end{figure}
 
-\begin{figure}[300-uwiii-vor]
-\includegraphics[width=6.0cm]{uwiii_300_vor}
-\caption{UW-III 300 Row Strip Voronoi}
-\label{fig:300-uwiii-vor}
-\end{figure}
+%\begin{figure}[300-uwiii-vor]
+%\includegraphics[width=6.0cm]{uwiii_300_vor}
+%\caption{UW-III 300 Row Strip Voronoi}
+%\label{fig:300-uwiii-vor}
+%\end{figure}
 
-% UW-III 300 by class
-\begin{figure}[uwiii-rast-vs-vor-fullpage]
-\includegraphics[width=6.0cm]{uwiii_class_rast_vs_vor.png}
-\caption{UW-III Fullpage RAST vs Voronoi by Class}
-\label{fig:uwiii-rast-vs-vor-fullpage}
-\end{figure}
 %\begin{figure}[uwiii-class-rast-vs-vor-300]
 %\includegraphics[width=6.0cm]{uwiii_class_rast_vs_vor_300.png}
 %\caption{UW-III 300 RAST vs Voronoi by Class}
@@ -1046,7 +1163,10 @@ folded optics array scanners have a very high depth of field and will thus
 capture more extraneous information.
 
 Future work would focus on preprocessing and image clean-up suitable for a
-strip. 
+strip. The heavy black areas (book page edges) so indicative of the UW-III
+dataset would be targeted by left/right margin clean-up using connected
+components. The connected components larger than a specific size and that
+stretched top to bottom of the strip could be ignored.
 
 % conference papers do not normally have an appendix
 
