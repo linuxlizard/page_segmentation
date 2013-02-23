@@ -14,6 +14,10 @@ import sqlite3
 
 from basename import get_basename
 
+dataset_list = ( "winder", "uwiii" )
+stripsize_list = ( "300", "600", "fullpage" )
+algorithm_list = ( "rast", "vor" )
+
 def load( datfile_name ) :
     
     infile = open(datfile_name,"r")
@@ -232,6 +236,13 @@ def loaddb( **kargs ):
     conn.close()
 
     return data
+
+def load_metrics( **kargs ) : 
+    # helper function to read all data via loaddb then convert the returning
+    # metrics into a single flattened numpy array
+    data_list = loaddb( **kargs ) 
+    all_metrics = np.concatenate( [ d["metrics"] for d in data_list ] )
+    return all_metrics
 
 def save_to_sqlite() : 
     winder_results, uwiii_results = load_all_results()
