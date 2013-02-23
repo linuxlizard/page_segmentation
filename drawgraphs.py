@@ -14,6 +14,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import itertools
+import Image
 
 from basename import get_basename
 import datfile
@@ -55,7 +56,8 @@ def make_histogram( metrics, outfilename, **kargs ) :
 
     ax = fig.add_subplot(111)
     ax.grid()
-    ax.hist(np.nan_to_num(metrics),bins=25,normed=True)
+    ax.hist(np.nan_to_num(metrics),bins=25)
+#    ax.hist(np.nan_to_num(metrics),bins=25,normed=True)
 
     ax.set_xlabel( "Metric" )
 
@@ -111,6 +113,9 @@ def plotit( data, outfilename, **kargs ) :
 
     ax = fig.add_subplot(111)
     ax.grid()
+    ax.set_ylim(-0.1,1.1)
+
+    label_iter = iter( ("Strip Metric","FullPage Metric","All Strips' Mean"))
     for i in range(num_rows) : 
         if num_rows==1 :
             column = data 
@@ -120,11 +125,16 @@ def plotit( data, outfilename, **kargs ) :
         fmt = kargs.get("fmt","+")
         if "color" in kargs : 
             fmt += kargs["color"]            
-        ax.plot(column,fmt)
+        ax.plot(column,fmt,label=label_iter.next())
 
     if "axis_title" in kargs : 
         title = kargs["axis_title"][i]
         ax.set_title(title)
+
+    ax.legend(loc="lower left")
+
+    ax.set_xlabel( "Strip Number" )
+    ax.set_ylabel( "Match Metric" )
 
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(outfilename)
@@ -219,6 +229,8 @@ def draw_class_results_barchart(dataset,dataset_title) :
     print means_hash 
 
     ax.set_ylim(0,1.0)
+    ax.set_ylabel( "Match Metric" )
+    ax.set_xlabel( "Image Class" )
 
     rects = []
 #    citer = iter( ("r","g","y","b"))
@@ -259,6 +271,16 @@ def draw_class_results_barchart(dataset,dataset_title) :
     canvas.print_figure(outfilename)
     print "wrote", outfilename
 
+    stretch_width(outfilename)
+#    # load the image we just wrote, resize 50% wider
+#    img = Image.open(outfilename)
+#    img.load()
+#    print img.size
+#    img.resize( (img.size[0]+img.size[0]/2,img.size[1]), Image.BILINEAR ).save(outfilename)
+##    print img.size
+##    img.save(outfilename)
+    print "wrote", outfilename
+
 def draw_winder_class_results() : 
     outfilename = "winder_class_rast_vs_vor.png"
     if os.path.exists(outfilename) : 
@@ -287,6 +309,22 @@ def draw_winder_class_results() :
     canvas = FigureCanvasAgg(fig)
     canvas.print_figure(outfilename)
     print "wrote", outfilename
+
+def stretch_width( filename ) : 
+    # load the image we just wrote, resize 50% wider, write back to same name
+    img = Image.open(filename)
+    img.load()
+    print img.size
+
+    width = img.size[0]
+    height = img.size[1]
+    print width,height
+
+    width += int(width*2)
+
+    print width,height
+
+    img.resize( (width,height), Image.BILINEAR ).save(filename)
 
 def draw_qualitative() : 
     print "drawing qualitative"
@@ -326,11 +364,13 @@ def draw_qualitative() :
         metric_errs = [np.std(m) for m in qual_data[key]]
         print metric_means, metric_errs
 #        ax.errorbar( (0,1,2), metric_means, yerr=metric_errs, fmt="o-" )
-        ax.plot( metric_means, "kx"+line_fmt.next() )
+        ax.plot( metric_means, "kx"+line_fmt.next(), linewidth=2.0 )
 
     # draw legend in upper left
     ax.legend(key_list,loc=2)
     ax.set_xticklabels( ("300","","600","","full"))
+    ax.set_xlabel( "Image Size" )
+    ax.set_ylabel( "Match Metric" )
 
     outfilename = "all_qual.png"
     canvas = FigureCanvasAgg(fig)
@@ -424,6 +464,84 @@ def graph_all_results() :
     draw_class_results_barchart("uwiii","UW-III")
     draw_class_results_barchart("winder","Winder")
 
+    draw_four_up_histogram("winder")
+    draw_four_up_histogram("uwiii")
+
+def old_draw_four_up_histogram(dataset) : 
+    # draw a 2x2 plot of 
+    #      fullpage+rast 300+rast
+    #      fullpage+vor  300_vor
+
+    outfilename = "{0}_2x2.png".format(dataset)
+
+    fig = Figure()
+    fig.suptitle(dataset)
+
+    figure_label_iter = iter(("(a)","(b)","(c)","(d)"))
+
+    subplot_counter = 1
+    for algo in algorithm_list : 
+        for stripsize in ("fullpage","300") : 
+            metrics = datfile.load_metrics( dataset=dataset, stripsize=stripsize, 
+                                                algorithm=algo)
+
+            ax = fig.add_subplot(2,2,subplot_counter)
+
+            ax.hist(metrics[np.nonzero(np.nan_to_num(metrics))],bins=25)
+#            ax.hist(metrics[np.nonzero(np.nan_to_num(metrics))],bins=25,normed=True)
+
+            ax.set_title("{0} {1} {2}".format(figure_label_iter.next(),algo,stripsize))
+            ax.set_xlabel( "Metric" )
+            ax.set_xlim(0,1.0)
+
+            subplot_counter += 1
+
+    fig.tight_layout(pad=2.0)
+
+    canvas = FigureCanvasAgg(fig)
+    canvas.print_figure(outfilename)
+    print "wrote", outfilename
+
+    stretch_width( outfilename )
+
+def draw_four_up_histogram(dataset) : 
+    # draw a 2x2 plot of 
+    #      fullpage+rast 300+rast
+    #      fullpage+vor  300_vor
+
+    outfilename = "{0}_2x2.png".format(dataset)
+
+    figure_label_iter = iter(("(a)","(b)","(c)","(d)"))
+
+    subplot_counter = 1
+    for algo in algorithm_list : 
+        for stripsize in ("fullpage","300") : 
+            fig = Figure()
+            fig.suptitle(dataset)
+
+            metrics = datfile.load_metrics( dataset=dataset, stripsize=stripsize, 
+                                                algorithm=algo)
+
+            ax = fig.add_subplot(111)
+
+            ax.hist(metrics[np.nonzero(np.nan_to_num(metrics))],bins=25)
+#            ax.hist(metrics[np.nonzero(np.nan_to_num(metrics))],bins=25,normed=True)
+
+#            ax.set_title("{0} {1} {2}".format(figure_label_iter.next(),algo,stripsize))
+            ax.set_xlabel( "Metric" )
+            ax.set_xlim(0,1.0)
+
+            subplot_counter += 1
+
+            fig.tight_layout(pad=2.0)
+
+            outfilename = "{0}_{1}_{2}_histo.png".format(dataset,stripsize,algo)
+            canvas = FigureCanvasAgg(fig)
+            canvas.print_figure(outfilename)
+            print "wrote", outfilename
+
+            stretch_width( outfilename )
+
 def usage() : 
     print >>sys.stderr, "usage: drawgraphs [list of datfiles]"
 
@@ -452,10 +570,13 @@ def main() :
 
 if __name__=='__main__':
 #    main()
-   graph_all_results()
+#   graph_all_results()
+
 #    draw_class_results_barchart("uwiii","UW-III")
 #    draw_class_results_barchart("winder","Winder")
-#    draw_uwiii_class_results("fullpage")
 
+    draw_four_up_histogram("winder")
+    draw_four_up_histogram("uwiii")
 
+#    draw_qualitative()
 
